@@ -400,7 +400,9 @@ body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', syste
   background: #0a0d14;
   display: flex; align-items: center; justify-content: center;
   font-family: 'Inter', system-ui, sans-serif;
+  transition: opacity .35s ease;
 }
+#login-gate.fade-out { opacity: 0; pointer-events: none; }
 #login-box {
   background: #111520; border: 1px solid #252d45;
   border-radius: 16px; padding: 48px 40px; width: 100%; max-width: 380px;
@@ -435,7 +437,6 @@ body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', syste
   color: #f87171; font-size: .82rem;
   margin-top: 12px; display: none; text-align: center;
 }
-#page-content { display: none; }
 </style>
 
 <div id="login-gate">
@@ -454,11 +455,8 @@ body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', syste
 <script>
 (function(){
   if(sessionStorage.getItem('blk_auth')==='1'){
-    document.addEventListener('DOMContentLoaded',function(){
-      document.getElementById('login-gate').style.display='none';
-      var c=document.getElementById('page-content');
-      if(c) c.style.display='';
-    });
+    var gate = document.getElementById('login-gate');
+    if(gate) gate.style.display='none';
   }
 })();
 function doLogin(){
@@ -466,9 +464,9 @@ function doLogin(){
   var p=document.getElementById('p').value;
   if(u==='davidc' && p==='blockaid1!'){
     sessionStorage.setItem('blk_auth','1');
-    document.getElementById('login-gate').style.display='none';
-    var c=document.getElementById('page-content');
-    if(c) c.style.display='';
+    var gate=document.getElementById('login-gate');
+    gate.classList.add('fade-out');
+    setTimeout(function(){ gate.style.display='none'; }, 380);
   } else {
     document.getElementById('login-error').style.display='block';
   }
@@ -477,8 +475,6 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Enter') doLogin();
 });
 </script>
-
-<div id="page-content">
 
 
 <!-- HEADER -->
@@ -1608,6 +1604,5 @@ function showPage(name) {
   window.scrollTo({top:0,behavior:'smooth'});
 }
 </script>
-</div>
 </body>
 </html>
