@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Step-by-Step Transaction Flow — Blockaid SE Reference</title>
+<style>
+:root {
+  --bg: #0a0d14;
+  --surface: #111520;
+  --surface2: #181d2e;
+  --surface3: #1e2438;
+  --border: #252d45;
+  --border2: #2e3a58;
+  --dapp: #f472b6;
+  --wallet: #fb923c;
+  --blockaid: #34d399;
+  --node: #4f8ef7;
+  --chain: #a78bfa;
+  --risk-red: #f87171;
+  --risk-yellow: #fbbf24;
+  --risk-green: #34d399;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --json: #fbbf24;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; line-height: 1.6; }
+
+/* ── HEADER ── */
+.header { background: linear-gradient(135deg,#111520,#0d1220); border-bottom:1px solid var(--border); padding:32px 48px; }
+.header-row { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+.badge { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 8px; border-radius:10px; }
+.header h1 { font-size:24px; font-weight:700; }
+.header p { color:var(--text-muted); font-size:13px; margin-top:4px; }
+.back-btn {
+  display:inline-flex; align-items:center; gap:8px;
+  color:var(--blockaid); text-decoration:none;
+  font-size:12px; font-weight:600;
+  border:1px solid rgba(52,211,153,0.3);
+  background:rgba(52,211,153,0.08);
+  border-radius:8px; padding:7px 16px;
+  transition:all .2s;
+}
+.back-btn:hover { background:rgba(52,211,153,0.15); border-color:var(--blockaid); }
+
+/* ── LAYOUT ── */
+.content { max-width:960px; margin:0 auto; padding:40px 48px 80px; }
+
+/* ── PROGRESS STRIP ── */
+.progress-strip {
+  display:flex; gap:0; margin-bottom:48px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; overflow:hidden;
+}
+.ps-step {
+  flex:1; padding:10px 8px; text-align:center; cursor:pointer;
+  font-size:10px; font-weight:700; transition:all .2s;
+  border-right:1px solid var(--border); color:var(--text-dim);
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+}
+.ps-step:last-child { border-right:none; }
+.ps-step:hover { background:var(--surface2); }
+.ps-step.active { color:var(--text); }
+.ps-num {
+  width:24px; height:24px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:800; border:2px solid;
+  flex-shrink:0;
+}
+
+/* ── STEP CARD ── */
+.step-card {
+  display:none;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:16px; overflow:hidden; margin-bottom:32px;
+}
+.step-card.active { display:block; }
+
+.step-card-header {
+  padding:28px 32px 20px;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:flex-start; gap:20px;
+}
+.step-num-large {
+  width:56px; height:56px; border-radius:14px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:22px; font-weight:900; border:2px solid; flex-shrink:0;
+}
+.step-title-block { flex:1; }
+.step-title-block h2 { font-size:20px; font-weight:700; margin-bottom:4px; }
+.step-title-block .who { font-size:12px; color:var(--text-dim); margin-bottom:6px; }
+.step-title-block .summary { font-size:13px; color:var(--text-muted); line-height:1.5; }
+
+.step-card-body { padding:28px 32px; }
+
+/* ── SUBSECTIONS ── */
+.sub-title {
+  font-size:10px; text-transform:uppercase; letter-spacing:1.5px;
+  color:var(--text-dim); margin-bottom:14px; padding-bottom:8px;
+  border-bottom:1px solid var(--border);
+}
+
+/* ── WHAT HAPPENS BOX ── */
+.what-box {
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:10px; padding:18px 20px; margin-bottom:20px;
+}
+.what-box p { font-size:13px; color:var(--text-muted); line-height:1.7; margin-bottom:10px; }
+.what-box p:last-child { margin-bottom:0; }
+
+/* ── CODE SNIPPET ── */
+.code-block {
+  background:#0d1015; border:1px solid var(--border2);
+  border-radius:8px; padding:14px 18px; margin-bottom:20px;
+  font-family: 'Courier New', monospace; font-size:12px;
+  line-height:1.7; overflow-x:auto;
+}
+.code-block .comment { color:var(--text-dim); }
+.code-block .key { color:#7dd3fc; }
+.code-block .val { color:var(--json); }
+.code-block .str { color:#86efac; }
+.code-block .fn { color:var(--dapp); }
+.code-block .addr { color:var(--blockaid); }
+.code-block .num { color:#c4b5fd; }
+
+/* ── DETAIL GRID ── */
+.detail-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:20px; }
+.detail-card {
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:10px; padding:16px 18px;
+}
+.detail-card .dc-label { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--text-dim); margin-bottom:6px; }
+.detail-card .dc-value { font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px; }
+.detail-card .dc-desc { font-size:12px; color:var(--text-muted); line-height:1.5; }
+
+/* ── CALLOUT ── */
+.callout {
+  display:flex; gap:14px; padding:14px 18px; border-radius:10px;
+  margin-bottom:20px; border:1px solid;
+}
+.callout-green { background:rgba(52,211,153,0.06); border-color:rgba(52,211,153,0.3); }
+.callout-blue { background:rgba(79,142,247,0.06); border-color:rgba(79,142,247,0.3); }
+.callout-red { background:rgba(248,113,113,0.06); border-color:rgba(248,113,113,0.3); }
+.callout-yellow { background:rgba(251,191,36,0.06); border-color:rgba(251,191,36,0.3); }
+.callout-orange { background:rgba(251,146,60,0.06); border-color:rgba(251,146,60,0.3); }
+.callout-icon { font-size:18px; flex-shrink:0; padding-top:1px; }
+.callout-body strong { display:block; font-size:13px; margin-bottom:3px; }
+.callout-body p { font-size:12px; color:var(--text-muted); }
+
+/* ── TAG PILLS ── */
+.tag-row { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+.tag { display:inline-block; padding:4px 12px; border-radius:20px; font-size:11px; font-weight:600; border:1px solid; }
+
+/* ── ATTACK SCENARIO ── */
+.attack-box {
+  background:rgba(248,113,113,0.05); border:1px solid rgba(248,113,113,0.25);
+  border-radius:10px; padding:16px 18px; margin-bottom:20px;
+}
+.attack-box .ab-title { font-size:11px; font-weight:700; color:var(--risk-red); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; }
+.attack-box p { font-size:12px; color:var(--text-muted); line-height:1.6; }
+
+/* ── STEP NAV ── */
+.step-nav {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-top:28px;
+}
+.nav-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:10px 20px; border-radius:8px; border:1px solid var(--border2);
+  background:var(--surface2); color:var(--text-muted); cursor:pointer;
+  font-size:12px; font-weight:600; transition:all .2s;
+}
+.nav-btn:hover:not(:disabled) { background:var(--surface3); color:var(--text); }
+.nav-btn:disabled { opacity:0.35; cursor:not-allowed; }
+.nav-btn.primary { background:rgba(52,211,153,0.1); border-color:rgba(52,211,153,0.4); color:var(--blockaid); }
+.nav-btn.primary:hover { background:rgba(52,211,153,0.2); }
+
+.step-counter { font-size:12px; color:var(--text-dim); }
+
+/* ── ACTOR BADGE inline ── */
+.actor-pill {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:2px 8px; border-radius:12px; font-size:11px; font-weight:700;
+  border:1px solid;
+}
+
+/* ── FLOW MINI ── */
+.flow-mini {
+  display:flex; align-items:center; gap:0;
+  margin:16px 0; padding:14px 18px;
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:10px; overflow-x:auto;
+}
+.fm-node {
+  padding:6px 14px; border-radius:8px; font-size:11px; font-weight:700;
+  border:1px solid; white-space:nowrap; flex-shrink:0;
+}
+.fm-arrow {
+  flex:1; min-width:32px; display:flex; flex-direction:column;
+  align-items:center; padding:0 4px;
+}
+.fm-arrow-line { height:2px; width:100%; position:relative; }
+.fm-arrow-line::after { content:'▶'; position:absolute; right:-6px; top:-8px; font-size:10px; }
+.fm-arrow-label { font-size:9px; color:var(--text-dim); margin-top:4px; white-space:nowrap; }
+.fm-arrow.reverse .fm-arrow-line::after { content:''; }
+.fm-arrow.reverse .fm-arrow-line::before { content:'◀'; position:absolute; left:-6px; top:-8px; font-size:10px; }
+
+/* ── SE CORNER BOX ── */
+.se-box {
+  background:var(--surface2); border:1px solid rgba(167,139,250,0.3);
+  border-radius:10px; padding:16px 18px; margin-bottom:20px;
+}
+.se-box .se-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#a78bfa; margin-bottom:8px; }
+.se-box ul { padding-left:16px; }
+.se-box ul li { font-size:12px; color:var(--text-muted); line-height:1.7; }
+
+/* ── TABLE ── */
+.mini-table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:20px; }
+.mini-table th { background:var(--surface3); padding:8px 12px; text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-dim); border-bottom:1px solid var(--border2); }
+.mini-table td { padding:8px 12px; border-bottom:1px solid var(--border); vertical-align:top; color:var(--text-muted); }
+.mini-table tr:last-child td { border-bottom:none; }
+.mini-table tr:nth-child(even) { background:rgba(255,255,255,0.01); }
+code.c { font-family:monospace; color:var(--json); background:var(--surface2); border:1px solid var(--border); border-radius:3px; padding:1px 5px; font-size:11px; }
+
+/* ── BLOCKAID HIGHLIGHT STRIP ── */
+.blockaid-strip {
+  background:rgba(52,211,153,0.04); border-left:3px solid var(--blockaid);
+  padding:14px 18px; border-radius:0 8px 8px 0; margin-bottom:20px;
+}
+.blockaid-strip .bs-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--blockaid); margin-bottom:6px; }
+.blockaid-strip p { font-size:12px; color:var(--text-muted); line-height:1.5; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <a href="blockaid-transaction-flow.html" class="back-btn">← Back to Main Diagram</a>
+    <span class="badge" style="background:#1a2a1a;color:var(--blockaid);border:1px solid var(--blockaid)">Blockaid</span>
+    <span class="badge" style="background:#1a1d27;color:#94a3b8;border:1px solid #2e3350">SE Reference</span>
+  </div>
+  <h1>Step-by-Step Transaction Flow</h1>
+  <p>Deep-dive explanation of each step from dApp click → confirmed on-chain · With Blockaid interception detail</p>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <!-- PROGRESS STRIP -->
+  <div class="progress-strip">
+    <div class="ps-step active" onclick="goTo(1)" id="ps1">
+      <div class="ps-num" style="border-color:var(--dapp);color:var(--dapp);background:rgba(244,114,182,0.1)">1</div>
+      <span>dApp Request</span>
+    </div>
+    <div class="ps-step" onclick="goTo(2)" id="ps2">
+      <div class="ps-num" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.1)">2</div>
+      <span>Blockaid Scan</span>
+    </div>
+    <div class="ps-step" onclick="goTo(3)" id="ps3">
+      <div class="ps-num" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.1)">3</div>
+      <span>Simulate</span>
+    </div>
+    <div class="ps-step" onclick="goTo(4)" id="ps4">
+      <div class="ps-num" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.1)">4</div>
+      <span>World State</span>
+    </div>
+    <div class="ps-step" onclick="goTo(5)" id="ps5">
+      <div class="ps-num" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.1)">5</div>
+      <span>Risk Score</span>
+    </div>
+    <div class="ps-step" onclick="goTo(6)" id="ps6">
+      <div class="ps-num" style="border-color:var(--wallet);color:var(--wallet);background:rgba(251,146,60,0.1)">6</div>
+      <span>Popup</span>
+    </div>
+    <div class="ps-step" onclick="goTo(7)" id="ps7">
+      <div class="ps-num" style="border-color:var(--dapp);color:var(--dapp);background:rgba(244,114,182,0.1)">7</div>
+      <span>User Signs</span>
+    </div>
+    <div class="ps-step" onclick="goTo(8)" id="ps8">
+      <div class="ps-num" style="border-color:var(--wallet);color:var(--wallet);background:rgba(251,146,60,0.1)">8</div>
+      <span>Broadcast</span>
+    </div>
+    <div class="ps-step" onclick="goTo(9)" id="ps9">
+      <div class="ps-num" style="border-color:var(--node);color:var(--node);background:rgba(79,142,247,0.1)">9</div>
+      <span>Mempool</span>
+    </div>
+    <div class="ps-step" onclick="goTo(10)" id="ps10">
+      <div class="ps-num" style="border-color:var(--chain);color:var(--chain);background:rgba(167,139,250,0.1)">10</div>
+      <span>Confirmed</span>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 1 ═══ -->
+  <div class="step-card active" id="card1">
+    <div class="step-card-header">
+      <div class="step-num-large" style="border-color:var(--dapp);color:var(--dapp);background:rgba(244,114,182,0.1)">1</div>
+      <div class="step-title-block">
+        <div class="who"><span class="actor-pill" style="border-color:var(--dapp);color:var(--dapp);background:rgba(244,114,182,0.08)">🌐 dApp</span> → <span class="actor-pill" style="border-color:var(--wallet);color:var(--wallet);background:rgba(251,146,60,0.08)">🦊 Wallet</span></div>
+        <h2>dApp sends eth_sendTransaction to Wallet</h2>
+        <div class="summary">The user clicks a button on the web frontend (e.g. "Swap", "Approve", "Mint"). The dApp constructs a transaction object and hands it to the wallet extension via a JSON-RPC call. Nothing has been signed yet — the wallet hasn't even shown the user a popup yet.</div>
+      </div>
+    </div>
+    <div class="step-card-body">
+
+      <div class="sub-title">What happens in detail</div>
+      <div class="what-box">
+        <p>When you interact with a dApp — say you click "Swap 100 USDC for ETH" on Uniswap — the dApp's JavaScript does not directly write to the blockchain. It can't — only the wallet holds your private key. Instead, the dApp calls <code class="c">window.ethereum.request()</code>, which is an API injected into your browser by MetaMask (or any wallet extension).</p>
+        <p>This call passes a raw transaction object: the destination contract address (<code class="c">to</code>), the ETH value being sent (<code class="c">value</code>), the encoded function call in hex (<code class="c">data</code>), and optionally gas hints. The dApp says "please send this transaction" — but the wallet gets to decide whether to show it, block it, or ask the user.</p>
+        <p>The <code class="c">data</code> field is the most critical part. It contains the <strong>function selector</strong> (first 4 bytes = which function to call) followed by <strong>ABI-encoded arguments</strong> (padded 32-byte chunks). This is how the contract knows what to execute.</p>
+      </div>
+
+      <div class="sub-title">The JSON-RPC call</div>
+      <div class="code-block">
+<span class="comment">// dApp JavaScript — running in your browser tab</span>
+<span class="key">window.ethereum</span>.<span class="fn">request</span>({
+  <span class="key">method</span>: <span class="str">"eth_sendTransaction"</span>,
+  <span class="key">params</span>: [{
+    <span class="key">from</span>:  <span class="addr">"0xYourWalletAddress"</span>,
+    <span class="key">to</span>:    <span class="addr">"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"</span>,  <span class="comment">// USDC contract</span>
+    <span class="key">value</span>: <span class="str">"0x0"</span>,                                         <span class="comment">// no ETH sent</span>
+    <span class="key">data</span>:  <span class="str">"0xa9059cbb"</span>                                    <span class="comment">// transfer() selector</span>
+           + <span class="str">"000000000000000000000000RecipientAddress..."</span>   <span class="comment">// param 1: to</span>
+           + <span class="str">"0000000000000000000000000000000000000000000000000000000005F5E100"</span>, <span class="comment">// param 2: amount (100 USDC)</span>
+    <span class="key">gas</span>:   <span class="str">"0xEA60"</span>                                        <span class="comment">// gas limit hint</span>
+  }]
+})
+      </div>
+
+      <div class="sub-title">Key fields decoded</div>
+      <div class="detail-grid">
+        <div class="detail-card">
+          <div class="dc-label">data field — function selector</div>
+          <div class="dc-value" style="color:var(--json)">0xa9059cbb</div>
+          <div class="dc-desc">First 4 bytes of keccak256("transfer(address,uint256)"). This tells the contract which function to execute. Blockaid reads this immediately to know what kind of action is being requested.</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">to field</div>
+          <div class="dc-value" style="color:var(--blockaid)">Contract address</div>
+          <div class="dc-desc">The smart contract being called. Could be a token contract, DEX router, NFT, or a malicious drainer. Blockaid checks this address against its known contract database.</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">value field</div>
+          <div class="dc-value" style="color:var(--node)">ETH amount (in wei)</div>
+          <div class="dc-desc">Native ETH being sent with the call. 0x0 for ERC-20 token operations. Non-zero if ETH is being transferred or used to pay for something (e.g. paying mint price in ETH).</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">from field</div>
+          <div class="dc-value" style="color:var(--dapp)">Your wallet address</div>
+          <div class="dc-desc">The EOA (Externally Owned Account) that will sign the transaction. The wallet uses this to know which private key to use for signing at Step 7.</div>
+        </div>
+      </div>
+
+      <div class="callout callout-blue">
+        <div class="callout-icon">🔑</div>
+        <div class="callout-body">
+          <strong>Why the dApp can't skip the wallet</strong>
+          <p>The dApp can <em>read</em> from the blockchain directly using <code class="c">eth_call</code> — for example, checking your token balance. But to <em>write</em> (change state), a transaction must be cryptographically signed by a private key. That private key lives only in the wallet — never in the dApp. So every state-changing transaction must pass through the wallet.</p>
+        </div>
+      </div>
+
+      <div class="se-box">
+        <div class="se-label">💼 SE Talking Point</div>
+        <ul>
+          <li>The wallet is the <strong>trust boundary</strong> between the dApp and the blockchain. Blockaid's integration sits at this boundary — it evaluates every transaction before the user even sees the popup.</li>
+          <li>A malicious dApp can craft a <code class="c">data</code> field that looks like a simple transfer but is actually calling <code class="c">setApprovalForAll(attacker, true)</code>. Only decoding the calldata reveals this — which Blockaid does at Step 2.</li>
+        </ul>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn" disabled>← Previous</button>
+        <span class="step-counter">Step 1 of 10</span>
+        <button class="nav-btn primary" onclick="goTo(2)">Next: Blockaid Scan →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 2 ═══ -->
+  <div class="step-card" id="card2">
+    <div class="step-card-header">
+      <div class="step-num-large" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.1)">2</div>
+      <div class="step-title-block">
+        <div class="who"><span class="actor-pill" style="border-color:var(--wallet);color:var(--wallet);background:rgba(251,146,60,0.08)">🦊 Wallet</span> → <span class="actor-pill" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.08)">🛡 Blockaid</span></div>
+        <h2>Wallet calls Blockaid — scan_transaction(rawTx)</h2>
+        <div class="summary">Before showing the user any confirmation popup, the wallet SDK silently forwards the raw transaction to Blockaid's API. This is the entry point of the entire security pipeline. The user has no idea this is happening — it's seamless and happens in milliseconds.</div>
+      </div>
+    </div>
+    <div class="step-card-body">
+
+      <div class="sub-title">What happens in detail</div>
+      <div class="what-box">
+        <p>Wallets that integrate Blockaid (MetaMask, Rainbow, Phantom, Zerion, and others) include the Blockaid SDK. When the wallet receives an <code class="c">eth_sendTransaction</code> request at Step 1, it doesn't immediately render the confirmation UI. Instead, the SDK intercepts the request and fires an API call to Blockaid's simulation engine with the full transaction payload.</p>
+        <p>The Blockaid API receives the raw transaction — <code class="c">to</code>, <code class="c">from</code>, <code class="c">data</code>, <code class="c">value</code>, <code class="c">chainId</code> — and begins its analysis pipeline. At this stage Blockaid has the encoded calldata but needs to simulate execution to understand what will actually happen on-chain.</p>
+        <p>This is also where <strong>EIP-712 typed data signing</strong> requests are intercepted — for example Uniswap's Permit2 off-chain signatures. These never touch the mempool, so the only security check is at this step.</p>
+      </div>
+
+      <div class="sub-title">What Blockaid receives</div>
+      <div class="code-block">
+<span class="comment">// Blockaid API payload — sent by Wallet SDK</span>
+{
+  <span class="key">"chain"</span>:    <span class="str">"ethereum"</span>,
+  <span class="key">"account_address"</span>: <span class="addr">"0xYourWalletAddress"</span>,
+  <span class="key">"transaction"</span>: {
+    <span class="key">"from"</span>:  <span class="addr">"0xYourWalletAddress"</span>,
+    <span class="key">"to"</span>:    <span class="addr">"0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"</span>,
+    <span class="key">"value"</span>: <span class="str">"0x0"</span>,
+    <span class="key">"data"</span>:  <span class="str">"0xa9059cbb000...encoded args..."</span>
+  },
+  <span class="key">"metadata"</span>: {
+    <span class="key">"domain"</span>: <span class="str">"app.uniswap.org"</span>   <span class="comment">// dApp origin URL</span>
+  }
+}
+      </div>
+
+      <div class="blockaid-strip">
+        <div class="bs-label">🛡 Blockaid immediately decodes</div>
+        <p>The function selector <code class="c">0xa9059cbb</code> is matched to <code class="c">transfer(address,uint256)</code>. The arguments are ABI-decoded to extract the recipient address and amount. Blockaid then knows: "this is a token transfer, not an approval" — and proceeds to simulate it.</p>
+      </div>
+
+      <div class="sub-title">What Blockaid checks at this stage</div>
+      <table class="mini-table">
+        <tr><th>Check</th><th>How</th><th>What it catches</th></tr>
+        <tr><td><strong>Function selector</strong></td><td>First 4 bytes of <code class="c">data</code></td><td>Drainers disguised as normal calls</td></tr>
+        <tr><td><strong>Contract address</strong></td><td>Lookup known-malicious registry</td><td>Phishing contracts, copycat tokens</td></tr>
+        <tr><td><strong>dApp domain</strong></td><td>Cross-check against allow/block lists</td><td>Spoofed UI, fake dApps</td></tr>
+        <tr><td><strong>Approval parameters</strong></td><td>Decode spender + amount args</td><td>Unlimited approvals to unknown spenders</td></tr>
+        <tr><td><strong>EIP-712 payloads</strong></td><td>Decode typed data structure</td><td>Malicious off-chain permits</td></tr>
+      </table>
+
+      <div class="callout callout-green">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body">
+          <strong>Why "before the popup" matters</strong>
+          <p>If Blockaid only ran <em>after</em> the user saw the popup, users would be making decisions without risk information. By running during Step 2 (before Step 6's popup), Blockaid can annotate the popup with a risk label, block it entirely for MALICIOUS results, or let it through cleanly for BENIGN results — all before the user has to act.</p>
+        </div>
+      </div>
+
+      <div class="se-box">
+        <div class="se-label">💼 SE Talking Point</div>
+        <ul>
+          <li>Blockaid's SDK is embedded in the <strong>wallet</strong>, not the dApp. This means even if the dApp is compromised (e.g. its CDN was hacked), Blockaid still scans every transaction before the user signs.</li>
+          <li>This is why wallet integrations are Blockaid's primary distribution channel — the wallet is the last chokepoint before irreversible on-chain actions.</li>
+        </ul>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn" onclick="goTo(1)">← Previous</button>
+        <span class="step-counter">Step 2 of 10</span>
+        <button class="nav-btn primary" onclick="goTo(3)">Next: Simulation →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 3 ═══ -->
+  <div class="step-card" id="card3">
+    <div class="step-card-header">
+      <div class="step-num-large" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.1)">3</div>
+      <div class="step-title-block">
+        <div class="who"><span class="actor-pill" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.08)">🛡 Blockaid</span> → <span class="actor-pill" style="border-color:var(--node);color:var(--node);background:rgba(79,142,247,0.08)">⚡ RPC Node</span></div>
+        <h2>Blockaid simulates the transaction via eth_call</h2>
+        <div class="summary">Blockaid calls eth_call on a blockchain RPC node to read the current world state and simulate what the transaction would do if executed right now — without actually submitting it. This is a read-only operation: no gas, no signature, no on-chain effect.</div>
+      </div>
+    </div>
+    <div class="step-card-body">
+
+      <div class="sub-title">What happens in detail</div>
+      <div class="what-box">
+        <p><code class="c">eth_call</code> is the blockchain equivalent of a "dry run". It lets anyone execute a transaction against the current state of the chain without broadcasting it. Miners/validators don't see it, no gas is consumed, and the state doesn't change.</p>
+        <p>Blockaid uses this to ask: "if this transaction were included in the next block right now, what would happen?" The EVM runs the code virtually against the live world state and returns the execution result — including any state changes, token movements, and emitted events.</p>
+        <p>Blockaid may call <code class="c">eth_call</code> multiple times in this step: once to run the full simulation, and additional calls to read specific storage slots — like <code class="c">balanceOf(user)</code> before and after, or <code class="c">allowance(owner, spender)</code> to understand existing approvals.</p>
+      </div>
+
+      <div class="sub-title">eth_call vs eth_sendTransaction</div>
+      <table class="mini-table">
+        <tr><th>Property</th><th>eth_call (Step 3)</th><th>eth_sendTransaction (Step 8)</th></tr>
+        <tr><td><strong>On-chain effect</strong></td><td style="color:var(--risk-green)">None — read only</td><td style="color:var(--risk-yellow)">Yes — state changes permanently</td></tr>
+        <tr><td><strong>Signature required</strong></td><td style="color:var(--risk-green)">No</td><td style="color:var(--risk-red)">Yes — private key signs</td></tr>
+        <tr><td><strong>Gas consumed</strong></td><td style="color:var(--risk-green)">No</td><td style="color:var(--risk-red)">Yes — paid in ETH</td></tr>
+        <tr><td><strong>Mempool</strong></td><td style="color:var(--risk-green)">Never enters</td><td style="color:var(--risk-yellow)">Enters mempool, public</td></tr>
+        <tr><td><strong>Who uses it</strong></td><td>Blockaid, dApps (balance checks)</td><td>Users confirming actions</td></tr>
+      </table>
+
+      <div class="sub-title">What Blockaid reads from storage</div>
+      <div class="code-block">
+<span class="comment">// Blockaid reads these via eth_call before simulating:</span>
+
+<span class="comment">// 1. Your current token balance</span>
+<span class="fn">balanceOf</span>(<span class="addr">0xYourAddress</span>)  <span class="comment">// → 1000 USDC</span>
+
+<span class="comment">// 2. Existing allowances (to detect if already approved)</span>
+<span class="fn">allowance</span>(<span class="addr">0xYourAddress</span>, <span class="addr">0xSpenderContract</span>)  <span class="comment">// → 0 or type(uint256).max</span>
+
+<span class="comment">// 3. Full simulation — run the transaction virtually</span>
+<span class="fn">eth_call</span>({
+  <span class="key">from</span>:  <span class="addr">"0xYourAddress"</span>,
+  <span class="key">to</span>:    <span class="addr">"0xContractAddress"</span>,
+  <span class="key">data</span>:  <span class="str">"0xa9059cbb...encoded..."</span>
+}, <span class="str">"latest"</span>)
+<span class="comment">// Returns: execution trace, state diffs, emitted events</span>
+      </div>
+
+      <div class="callout callout-blue">
+        <div class="callout-icon">🌍</div>
+        <div class="callout-body">
+          <strong>World State = the current blockchain ledger snapshot</strong>
+          <p>Every EVM simulation runs against the "world state" — the complete record of all account balances, nonces, and contract storage at the latest block. For ERC-20 tokens, a user's balance is just a value in the token contract's <code class="c">mapping(address => uint256) balances</code> storage. Blockaid reads this mapping via <code class="c">eth_call</code> to know what the user actually holds right now.</p>
+        </div>
+      </div>
+
+      <div class="se-box">
+        <div class="se-label">💼 SE Talking Point</div>
+        <ul>
+          <li>Blockaid's simulation is not just "checking a list" — it actually <strong>re-runs the EVM bytecode</strong> against the live chain. This means it catches novel attack patterns that have never been seen before, because the outcome (e.g. "user's entire balance drained") speaks for itself.</li>
+          <li>For complex DeFi transactions with multi-hop routing (e.g. USDC → WETH → FAI via Uniswap), the simulation traces every internal call and sub-call to capture the complete token flow.</li>
+        </ul>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn" onclick="goTo(2)">← Previous</button>
+        <span class="step-counter">Step 3 of 10</span>
+        <button class="nav-btn primary" onclick="goTo(4)">Next: World State →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 4 ═══ -->
+  <div class="step-card" id="card4">
+    <div class="step-card-header">
+      <div class="step-num-large" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.1)">4</div>
+      <div class="step-title-block">
+        <div class="who"><span class="actor-pill" style="border-color:var(--node);color:var(--node);background:rgba(79,142,247,0.08)">⚡ RPC Node</span> → <span class="actor-pill" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.08)">🛡 Blockaid</span></div>
+        <h2>Node returns world state + simulation result</h2>
+        <div class="summary">The RPC node responds with the full simulation output: what the current balances are, what the transaction would do to those balances, what events would be emitted, and whether the transaction would succeed or revert. This is the raw data Blockaid's risk engine processes.</div>
+      </div>
+    </div>
+    <div class="step-card-body">
+
+      <div class="sub-title">What happens in detail</div>
+      <div class="what-box">
+        <p>The RPC node (Alchemy, Infura, or a direct node) executes the simulated transaction and returns a detailed trace. This includes the final return value, all storage slot changes (state diff), all events that would have been emitted, and any internal calls made by the contract to other contracts.</p>
+        <p>For a token transfer, the state diff is simple: sender's balance decreases, recipient's balance increases. For a complex DEX swap, there might be dozens of internal calls and multiple token movements. For a drainer, the simulation might show the user's entire wallet contents being swept to an unknown address.</p>
+        <p>This is where Blockaid's proprietary intelligence layer matters most — it doesn't just receive the raw result, it interprets it through trained models that recognize attack patterns.</p>
+      </div>
+
+      <div class="sub-title">Example simulation result — Uniswap swap</div>
+      <div class="code-block">
+<span class="comment">// Simulation result from RPC node (simplified)</span>
+{
+  <span class="key">"success"</span>: <span class="num">true</span>,
+  <span class="key">"gas_used"</span>: <span class="num">185000</span>,
+  <span class="key">"state_diffs"</span>: [
+    { <span class="key">"token"</span>: <span class="str">"USDC"</span>,  <span class="key">"address"</span>: <span class="addr">"0xYours"</span>,       <span class="key">"change"</span>: <span class="num">-100000000</span> },  <span class="comment">// -100 USDC</span>
+    { <span class="key">"token"</span>: <span class="str">"ETH"</span>,   <span class="key">"address"</span>: <span class="addr">"0xYours"</span>,       <span class="key">"change"</span>: <span class="num">+42000000000000000</span> },  <span class="comment">// +0.042 ETH</span>
+    { <span class="key">"token"</span>: <span class="str">"USDC"</span>,  <span class="key">"address"</span>: <span class="addr">"0xPool"</span>,        <span class="key">"change"</span>: <span class="num">+100000000</span> }   <span class="comment">// pool receives USDC</span>
+  ],
+  <span class="key">"events"</span>: [
+    { <span class="key">"name"</span>: <span class="str">"Transfer"</span>, <span class="key">"from"</span>: <span class="addr">"0xYours"</span>, <span class="key">"to"</span>: <span class="addr">"0xPool"</span>, <span class="key">"amount"</span>: <span class="num">100000000</span> },
+    { <span class="key">"name"</span>: <span class="str">"Transfer"</span>, <span class="key">"from"</span>: <span class="addr">"0xWETH"</span>, <span class="key">"to"</span>: <span class="addr">"0xYours"</span>, <span class="key">"amount"</span>: <span class="num">42000000000000000</span> },
+    { <span class="key">"name"</span>: <span class="str">"Swap"</span>,     <span class="key">"sender"</span>: <span class="addr">"0xRouter"</span>, <span class="key">"recipient"</span>: <span class="addr">"0xYours"</span> }
+  ]
+}
+      </div>
+
+      <div class="sub-title">What Blockaid's risk engine analyses</div>
+      <div class="detail-grid">
+        <div class="detail-card">
+          <div class="dc-label">Balance delta</div>
+          <div class="dc-value" style="color:var(--risk-green)">Net gain/loss per asset</div>
+          <div class="dc-desc">Does the user end up with more or less of each asset? A drainer would show the user losing tokens to an unknown address with nothing received in return.</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">Recipient analysis</div>
+          <div class="dc-value" style="color:var(--node)">Who receives value?</div>
+          <div class="dc-desc">Is the recipient a known DEX router, or a fresh wallet created 2 hours ago? Newly created recipient addresses with large inflows are a strong drainer signal.</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">Approval check</div>
+          <div class="dc-value" style="color:var(--risk-yellow)">What is being authorized?</div>
+          <div class="dc-desc">If the tx is an approve(), Blockaid checks: who is the spender? Is it a known protocol? Is the amount <code class="c">type(uint256).max</code> (unlimited)? Is this spender on a block list?</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">Revert detection</div>
+          <div class="dc-value" style="color:var(--risk-red)">Will the tx fail?</div>
+          <div class="dc-desc">If the simulation reverts, Blockaid can warn the user before they waste gas on a transaction that would fail. Common cause: insufficient balance or stale allowance.</div>
+        </div>
+      </div>
+
+      <div class="callout callout-red">
+        <div class="callout-icon">⚠️</div>
+        <div class="callout-body">
+          <strong>Attack example: what a drainer simulation looks like</strong>
+          <p>State diff shows: user's USDC balance: -50,000 USDC. User's ETH balance: -2.5 ETH. Recipient (unknown address, created yesterday): +50,000 USDC, +2.5 ETH. Zero assets returned. This is the signature of a wallet drainer — and Blockaid returns MALICIOUS before the user even sees the popup.</p>
+        </div>
+      </div>
+
+      <div class="se-box">
+        <div class="se-label">💼 SE Talking Point</div>
+        <ul>
+          <li>This is the step where Blockaid's <strong>simulation-based approach</strong> separates it from simple signature-based security tools. Instead of just checking "is this contract on a blocklist?", Blockaid asks "what will actually happen to the user's assets?"</li>
+          <li>The RPC node Blockaid queries is its own infrastructure — not the same node the wallet uses to broadcast transactions. This ensures Blockaid always reads the most current world state.</li>
+        </ul>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn" onclick="goTo(3)">← Previous</button>
+        <span class="step-counter">Step 4 of 10</span>
+        <button class="nav-btn primary" onclick="goTo(5)">Next: Risk Score →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 5 ═══ -->
+  <div class="step-card" id="card5">
+    <div class="step-card-header">
+      <div class="step-num-large" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.1)">5</div>
+      <div class="step-title-block">
+        <div class="who"><span class="actor-pill" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.08)">🛡 Blockaid</span> → <span class="actor-pill" style="border-color:var(--wallet);color:var(--wallet);background:rgba(251,146,60,0.08)">🦊 Wallet</span></div>
+        <h2>Blockaid returns risk_score + decoded_tx</h2>
+        <div class="summary">After running the simulation and risk analysis, Blockaid sends back a structured response to the wallet. This includes a risk verdict (BENIGN / WARNING / MALICIOUS), a human-readable explanation, and the decoded transaction summary (what will change, in plain language).</div>
+      </div>
+    </div>
+    <div class="step-card-body">
+
+      <div class="sub-title">What happens in detail</div>
+      <div class="what-box">
+        <p>The Blockaid API response is the culmination of Steps 2–4. It contains the risk classification, the reason for that classification, the decoded transaction in human-readable form, and the expected asset changes. The wallet SDK receives this and uses it to build the confirmation popup shown in Step 6.</p>
+        <p>The three verdict types are: <strong>BENIGN</strong> (safe, proceed normally), <strong>WARNING</strong> (unusual but not necessarily malicious — show the user with caution indicators), and <strong>MALICIOUS</strong> (confirmed attack — wallet blocks the action and shows a red warning screen).</p>
+      </div>
+
+      <div class="sub-title">Blockaid API response structure</div>
+      <div class="code-block">
+<span class="comment">// Blockaid response — sent back to Wallet SDK</span>
+{
+  <span class="key">"status"</span>:       <span class="str">"BENIGN"</span>,               <span class="comment">// BENIGN | WARNING | MALICIOUS</span>
+  <span class="key">"result_type"</span>:  <span class="str">"Transaction"</span>,
+  <span class="key">"description"</span>:  <span class="str">"Swap 100 USDC for ~0.042 ETH via Uniswap V3"</span>,
+
+  <span class="key">"simulation_results"</span>: {
+    <span class="key">"account_summary"</span>: {
+      <span class="key">"assets_out"</span>: [{ <span class="key">"asset"</span>: <span class="str">"USDC"</span>,  <span class="key">"amount"</span>: <span class="str">"100.00"</span> }],
+      <span class="key">"assets_in"</span>:  [{ <span class="key">"asset"</span>: <span class="str">"ETH"</span>,   <span class="key">"amount"</span>: <span class="str">"0.042"</span>  }],
+      <span class="key">"total_usd_out"</span>: <span class="str">"100.00"</span>,
+      <span class="key">"total_usd_in"</span>:  <span class="str">"99.70"</span>
+    }
+  },
+
+  <span class="key">"classification_data"</span>: {
+    <span class="key">"type"</span>:   <span class="str">"KNOWN_MALICIOUS_ADDRESS"</span>,   <span class="comment">// only if WARNING/MALICIOUS</span>
+    <span class="key">"reason"</span>: <span class="str">"Recipient is a known drainer contract"</span>
+  }
+}
+      </div>
+
+      <div class="sub-title">Risk verdict types</div>
+      <div class="detail-grid">
+        <div class="detail-card">
+          <div class="dc-label">BENIGN</div>
+          <div class="dc-value" style="color:var(--risk-green)">✓ Safe to proceed</div>
+          <div class="dc-desc">Simulation shows expected results. Contract is known. Asset flows make sense given the dApp context. Wallet shows a clean confirmation screen.</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">WARNING</div>
+          <div class="dc-value" style="color:var(--risk-yellow)">⚠ Unusual pattern</div>
+          <div class="dc-desc">Something unusual was detected — e.g. an unlimited approval to an unverified contract, or large slippage. Wallet shows a yellow caution popup. User can still proceed.</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">MALICIOUS</div>
+          <div class="dc-value" style="color:var(--risk-red)">✗ Attack detected</div>
+          <div class="dc-desc">Simulation shows assets draining to a known attacker or suspicious address. Wallet blocks the popup and shows a red screen: "This transaction is dangerous."</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">SIMULATION ERROR</div>
+          <div class="dc-value" style="color:var(--text-muted)">? Cannot simulate</div>
+          <div class="dc-desc">Rare — simulation could not complete (e.g. very complex novel contract). Treated conservatively — wallet shows a caution notice.</div>
+        </div>
+      </div>
+
+      <div class="callout callout-green">
+        <div class="callout-icon">🛡</div>
+        <div class="callout-body">
+          <strong>Steps 2–5 is Blockaid's entire value window</strong>
+          <p>This four-step loop — intercept → simulate → analyse → score — all happens in under 300ms before the user sees the popup. Once a transaction is signed and broadcast (Step 8), it is in the mempool and heading for the blockchain. There is no recall. Blockaid's protection is entirely front-loaded into this pre-confirmation window.</p>
+        </div>
+      </div>
+
+      <div class="se-box">
+        <div class="se-label">💼 SE Talking Point</div>
+        <ul>
+          <li>The <code class="c">description</code> field ("Swap 100 USDC for ~0.042 ETH via Uniswap V3") replaces the raw hex calldata shown in legacy wallet popups. This alone is a huge UX improvement — users can finally understand what they're signing.</li>
+          <li>For enterprise customers (custodians, treasuries), the <strong>Blockaid API</strong> can be queried directly as part of a co-signing policy: "only auto-approve transactions Blockaid rates BENIGN." This is the cosigning use case.</li>
+        </ul>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn" onclick="goTo(4)">← Previous</button>
+        <span class="step-counter">Step 5 of 10</span>
+        <button class="nav-btn primary" onclick="goTo(6)">Next: Wallet Popup →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 6 ═══ -->
+  <div class="step-card" id="card6">
+    <div class="step-card-header">
+      <div class="step-num-large" style="border-color:var(--wallet);color:var(--wallet);background:rgba(251,146,60,0.1)">6</div>
+      <div class="step-title-block">
+        <div class="who"><span class="actor-pill" style="border-color:var(--wallet);color:var(--wallet);background:rgba(251,146,60,0.08)">🦊 Wallet</span> shows confirmation popup</div>
+        <h2>Wallet renders the confirmation popup to the user</h2>
+        <div class="summary">Now — and only now — does the user see the transaction confirmation screen. It includes Blockaid's risk label, the decoded description of what will happen (e.g. "Send 100 USDC to Uniswap"), and the expected asset changes. The user has not yet signed anything.</div>
+      </div>
+    </div>
+    <div class="step-card-body">
+
+      <div class="sub-title">What happens in detail</div>
+      <div class="what-box">
+        <p>The wallet takes the Blockaid API response from Step 5 and renders it as a confirmation popup. For BENIGN transactions, the user sees a clean screen with a green "This looks safe" badge, a plain-English description of the transaction ("Swap 100 USDC → ~0.042 ETH on Uniswap"), and the exact asset changes ("You will send: 100 USDC. You will receive: ~0.042 ETH").</p>
+        <p>For WARNING transactions, the popup shows a yellow caution header with the specific reason for concern. The user can still choose to proceed, but is clearly informed. For MALICIOUS transactions, most wallets block the popup entirely and show a full-screen red warning — the user must explicitly click "I understand the risk" to override.</p>
+        <p>Without Blockaid, the wallet popup would show raw hex calldata, a contract address, and a gas estimate — incomprehensible to 99% of users.</p>
+      </div>
+
+      <div class="sub-title">What the user sees</div>
+      <div class="detail-grid">
+        <div class="detail-card">
+          <div class="dc-label">BENIGN popup</div>
+          <div class="dc-value" style="color:var(--risk-green)">✓ This looks safe</div>
+          <div class="dc-desc">Green badge. Plain-English summary. Asset change preview. "Confirm" and "Reject" buttons. User proceeds with confidence.</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">WARNING popup</div>
+          <div class="dc-value" style="color:var(--risk-yellow)">⚠ Proceed with caution</div>
+          <div class="dc-desc">Yellow header with specific risk reason (e.g. "Unlimited approval to unverified contract"). User can still confirm, but is informed of the risk.</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">MALICIOUS popup</div>
+          <div class="dc-value" style="color:var(--risk-red)">✗ Transaction blocked</div>
+          <div class="dc-desc">Red full-screen warning. Reason shown (e.g. "Drainer contract detected"). "Confirm" button hidden or requires extra confirmation step.</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">Without Blockaid</div>
+          <div class="dc-value" style="color:var(--text-dim)">Raw hex data</div>
+          <div class="dc-desc">Legacy wallet shows: <code class="c">data: 0xa9059cbb0000...</code> — unreadable. User has no idea what they're actually approving.</div>
+        </div>
+      </div>
+
+      <div class="callout callout-orange">
+        <div class="callout-icon">🦊</div>
+        <div class="callout-body">
+          <strong>This is the last moment the user has full control</strong>
+          <p>Once the user clicks "Confirm" in Step 7, the wallet signs the transaction and it proceeds to broadcast. The user cannot cancel after this point (unless the mempool is very slow and they manage to replace the transaction with a higher gas price). Step 6 is the informed decision point — Blockaid's job is to make this decision as clear as possible.</p>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn" onclick="goTo(5)">← Previous</button>
+        <span class="step-counter">Step 6 of 10</span>
+        <button class="nav-btn primary" onclick="goTo(7)">Next: User Signs →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 7 ═══ -->
+  <div class="step-card" id="card7">
+    <div class="step-card-header">
+      <div class="step-num-large" style="border-color:var(--dapp);color:var(--dapp);background:rgba(244,114,182,0.1)">7</div>
+      <div class="step-title-block">
+        <div class="who"><span class="actor-pill" style="border-color:var(--dapp);color:var(--dapp);background:rgba(244,114,182,0.08)">👤 User</span> → <span class="actor-pill" style="border-color:var(--wallet);color:var(--wallet);background:rgba(251,146,60,0.08)">🦊 Wallet</span></div>
+        <h2>User clicks "Confirm" — wallet signs the transaction</h2>
+        <div class="summary">The user approves the transaction. The wallet retrieves the user's private key (from secure storage, hardware wallet, or MPC system) and cryptographically signs the transaction. The result is a signed transaction — a raw hex blob that proves the owner authorized this specific action.</div>
+      </div>
+    </div>
+    <div class="step-card-body">
+
+      <div class="sub-title">What happens in detail</div>
+      <div class="what-box">
+        <p>Clicking "Confirm" triggers the wallet to sign the transaction using the user's private key. This produces an ECDSA (Elliptic Curve Digital Signature Algorithm) signature — three values: <code class="c">v</code>, <code class="c">r</code>, and <code class="c">s</code>. These are appended to the transaction object to create a "raw signed transaction" — a complete hex-encoded payload ready to broadcast.</p>
+        <p>The private key never leaves the wallet. For software wallets (MetaMask), it's encrypted in browser storage. For hardware wallets (Ledger), it lives on a secure chip and the signing happens on the device. For MPC wallets (e.g. Fireblocks), the key is split across multiple servers and combined using cryptographic protocols without ever being fully assembled in one place.</p>
+        <p>Once signed, the transaction hash (<code class="c">txHash</code>) is deterministic — it's the keccak256 hash of the signed transaction bytes. This is the tx hash you see on Basescan/Etherscan.</p>
+      </div>
+
+      <div class="sub-title">What a signed transaction contains</div>
+      <div class="code-block">
+<span class="comment">// Signed transaction fields (RLP-encoded for broadcast)</span>
+{
+  <span class="key">nonce</span>:    <span class="num">0x2a</span>,          <span class="comment">// tx count for this address — prevents replay</span>
+  <span class="key">gasPrice</span>: <span class="num">0x3B9ACA00</span>,    <span class="comment">// or maxFeePerGas + maxPriorityFeePerGas (EIP-1559)</span>
+  <span class="key">gasLimit</span>: <span class="num">0xEA60</span>,        <span class="comment">// max gas allowed</span>
+  <span class="key">to</span>:       <span class="addr">0xa0b869...</span>,    <span class="comment">// USDC contract</span>
+  <span class="key">value</span>:    <span class="num">0x0</span>,
+  <span class="key">data</span>:     <span class="str">0xa9059cbb...</span>,   <span class="comment">// encoded function call</span>
+  <span class="key">chainId</span>:  <span class="num">8453</span>,            <span class="comment">// Base network — prevents replay on other chains</span>
+  <span class="key">v</span>: <span class="num">0x1</span>, <span class="key">r</span>: <span class="addr">0x7f3d...</span>, <span class="key">s</span>: <span class="addr">0x2a9b...</span>   <span class="comment">// ECDSA signature</span>
+}
+<span class="comment">// txHash = keccak256(RLP-encoded above) = 0x7db3...</span>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-card">
+          <div class="dc-label">Nonce</div>
+          <div class="dc-value" style="color:var(--json)">Replay protection</div>
+          <div class="dc-desc">Sequential counter for each address. If nonce=42, this is your 43rd transaction. A transaction with a used nonce is rejected. Prevents replaying old signed transactions.</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">ChainId</div>
+          <div class="dc-value" style="color:var(--node)">Cross-chain protection</div>
+          <div class="dc-desc">Ethereum=1, Base=8453, Polygon=137. Including chainId in the signature means a tx signed for Base can't be replayed on Ethereum. EIP-155 protection.</div>
+        </div>
+      </div>
+
+      <div class="se-box">
+        <div class="se-label">💼 SE Talking Point</div>
+        <ul>
+          <li>For <strong>Safe multisig</strong> (Gnosis Safe), "signing" at this step doesn't immediately broadcast — it adds one off-chain EIP-712 signature to a pool. Only when the threshold is reached (e.g. 2 out of 4 signers) does the final <code class="c">execTransaction()</code> call get broadcast on-chain.</li>
+          <li>For <strong>EIP-4337 Smart Accounts</strong>, the "signature" is a UserOperation, not an EOA-signed tx. It goes to a bundler, not a regular RPC node. Blockaid integrations cover both paths.</li>
+        </ul>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn" onclick="goTo(6)">← Previous</button>
+        <span class="step-counter">Step 7 of 10</span>
+        <button class="nav-btn primary" onclick="goTo(8)">Next: Broadcast →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 8 ═══ -->
+  <div class="step-card" id="card8">
+    <div class="step-card-header">
+      <div class="step-num-large" style="border-color:var(--wallet);color:var(--wallet);background:rgba(251,146,60,0.1)">8</div>
+      <div class="step-title-block">
+        <div class="who"><span class="actor-pill" style="border-color:var(--wallet);color:var(--wallet);background:rgba(251,146,60,0.08)">🦊 Wallet</span> → <span class="actor-pill" style="border-color:var(--node);color:var(--node);background:rgba(79,142,247,0.08)">⚡ RPC Node</span></div>
+        <h2>Wallet broadcasts the signed tx via eth_sendRawTransaction</h2>
+        <div class="summary">The wallet sends the fully signed transaction to an RPC node using eth_sendRawTransaction. This is different from Step 1's eth_sendTransaction — the transaction is now signed and ready to execute. The RPC node validates the signature and forwards the transaction to the network's mempool.</div>
+      </div>
+    </div>
+    <div class="step-card-body">
+
+      <div class="sub-title">What happens in detail</div>
+      <div class="what-box">
+        <p>The wallet calls <code class="c">eth_sendRawTransaction</code> with the complete RLP-encoded signed transaction as a hex string. The RPC node performs basic validation: is the signature valid? Is the nonce correct? Is the sender's ETH balance sufficient to cover gas? If all checks pass, the node accepts the transaction and propagates it to the peer-to-peer network.</p>
+        <p>The RPC node immediately returns the <code class="c">txHash</code> — the unique identifier for this transaction. At this point the transaction exists in the network but is not yet confirmed. It is "pending".</p>
+        <p>The wallet updates its UI to show a "Transaction pending" status with the txHash, often with a link to the block explorer (Etherscan, Basescan) where the user can watch it progress from "Pending" to "Success".</p>
+      </div>
+
+      <div class="sub-title">eth_sendRawTransaction call</div>
+      <div class="code-block">
+<span class="comment">// Wallet sends signed tx to RPC node</span>
+{
+  <span class="key">"method"</span>: <span class="str">"eth_sendRawTransaction"</span>,
+  <span class="key">"params"</span>: [
+    <span class="str">"0x02f87282210a...full RLP-encoded signed tx hex..."</span>
+  ]
+}
+
+<span class="comment">// RPC node responds immediately with tx hash</span>
+{
+  <span class="key">"result"</span>: <span class="str">"0x7db39872...the transaction hash..."</span>
+}
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-card">
+          <div class="dc-label">eth_sendRawTransaction vs eth_sendTransaction</div>
+          <div class="dc-value" style="color:var(--json)">Key difference</div>
+          <div class="dc-desc"><code class="c">eth_sendTransaction</code> (Step 1) sends an unsigned tx to the wallet and asks it to sign. <code class="c">eth_sendRawTransaction</code> (Step 8) sends a pre-signed tx to the node for broadcast. The node can't sign — it just validates and propagates.</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">Point of no return</div>
+          <div class="dc-value" style="color:var(--risk-red)">Transaction is public</div>
+          <div class="dc-desc">Once broadcast, the transaction is in the public mempool and visible to all nodes and MEV bots. It cannot be recalled. It can only be "replaced" by a new transaction with the same nonce and higher gas.</div>
+        </div>
+      </div>
+
+      <div class="callout callout-yellow">
+        <div class="callout-icon">🔍</div>
+        <div class="callout-body">
+          <strong>MEV (Maximal Extractable Value) exposure begins here</strong>
+          <p>The moment your transaction hits the mempool, sophisticated bots (MEV searchers) can see your swap intent. They may insert a transaction before yours (front-running) to buy the token you're buying, pushing up the price — then sell it after your tx executes (sandwich attack). This is why Uniswap shows slippage warnings and offers "private" routing through MEV-protected RPC endpoints like Flashbots Protect.</p>
+        </div>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn" onclick="goTo(7)">← Previous</button>
+        <span class="step-counter">Step 8 of 10</span>
+        <button class="nav-btn primary" onclick="goTo(9)">Next: Mempool →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 9 ═══ -->
+  <div class="step-card" id="card9">
+    <div class="step-card-header">
+      <div class="step-num-large" style="border-color:var(--node);color:var(--node);background:rgba(79,142,247,0.1)">9</div>
+      <div class="step-title-block">
+        <div class="who"><span class="actor-pill" style="border-color:var(--node);color:var(--node);background:rgba(79,142,247,0.08)">⚡ RPC Node</span> → <span class="actor-pill" style="border-color:var(--chain);color:var(--chain);background:rgba(167,139,250,0.08)">⛓ Blockchain</span></div>
+        <h2>Transaction enters the mempool → validator picks it up</h2>
+        <div class="summary">The signed transaction propagates through the peer-to-peer network to all nodes' mempools — the public waiting room of pending transactions. A validator (Ethereum) or sequencer (Base/L2) selects it, orders it within a block, and executes it against the current world state.</div>
+      </div>
+    </div>
+    <div class="step-card-body">
+
+      <div class="sub-title">What happens in detail</div>
+      <div class="what-box">
+        <p>The <strong>mempool</strong> (memory pool) is a public, unordered set of valid-but-unconfirmed transactions sitting across all nodes in the network. When your transaction enters the mempool, it is immediately visible to anyone watching — block explorers, MEV bots, other nodes.</p>
+        <p>On <strong>Ethereum L1</strong>, validators (post-Merge, formerly miners) select transactions from the mempool to include in the next block, typically prioritising by gas price (those paying more tip get included first). Block time is ~12 seconds.</p>
+        <p>On <strong>Base (L2)</strong>, a centralised sequencer (operated by Coinbase) orders all transactions, batches them, and posts them to Ethereum L1 for finality. The sequencer provides fast "soft confirmation" (milliseconds) but L1 finality takes minutes. This is why Base transactions feel instant but technically aren't "final" until the batch is posted to Ethereum.</p>
+      </div>
+
+      <div class="sub-title">Ethereum L1 vs Base L2 — mempool differences</div>
+      <table class="mini-table">
+        <tr><th>Property</th><th>Ethereum L1</th><th>Base (L2 Sequencer)</th></tr>
+        <tr><td><strong>Who orders txs?</strong></td><td>Validators (decentralised, 500k+)</td><td>Coinbase's sequencer (single entity)</td></tr>
+        <tr><td><strong>Block time</strong></td><td>~12 seconds</td><td>~2 seconds</td></tr>
+        <tr><td><strong>Finality</strong></td><td>~2 epochs (~6.5 min)</td><td>~7 min (until L1 batch post)</td></tr>
+        <tr><td><strong>Mempool public?</strong></td><td>Yes — fully public</td><td>Soft — sequencer controls ordering</td></tr>
+        <tr><td><strong>MEV exposure</strong></td><td>High — bots watch mempool</td><td>Lower — sequencer can block front-running</td></tr>
+        <tr><td><strong>Gas token</strong></td><td>ETH</td><td>ETH (+ L1 data fee component)</td></tr>
+      </table>
+
+      <div class="callout callout-blue">
+        <div class="callout-icon">⚡</div>
+        <div class="callout-body">
+          <strong>Why sequencers matter to Blockaid customers</strong>
+          <p>L2 sequencers are a potential point of centralisation and censorship — the sequencer operator can theoretically delay, reorder, or exclude transactions. For enterprise customers (exchanges, custodians, protocols), Blockaid's monitoring layer watches for anomalous transaction ordering patterns and can alert when a user's transaction is repeatedly excluded from blocks — a sign of targeted censorship.</p>
+        </div>
+      </div>
+
+      <div class="se-box">
+        <div class="se-label">💼 SE Talking Point</div>
+        <ul>
+          <li>The mempool is where Blockaid's <strong>post-broadcast monitoring</strong> products have value. Once a transaction is signed and in the mempool, pre-confirmation protection (Steps 2–5) has already done its job. Post-confirmation monitoring watches for suspicious patterns on-chain.</li>
+          <li>MEV sandwich attacks happen entirely in the mempool. A bot sees your Uniswap swap, submits a buy before it and a sell after — all within the same block. Slippage tolerance is your only defence at this stage.</li>
+        </ul>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn" onclick="goTo(8)">← Previous</button>
+        <span class="step-counter">Step 9 of 10</span>
+        <button class="nav-btn primary" onclick="goTo(10)">Next: Confirmed →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ STEP 10 ═══ -->
+  <div class="step-card" id="card10">
+    <div class="step-card-header">
+      <div class="step-num-large" style="border-color:var(--chain);color:var(--chain);background:rgba(167,139,250,0.1)">✓</div>
+      <div class="step-title-block">
+        <div class="who"><span class="actor-pill" style="border-color:var(--chain);color:var(--chain);background:rgba(167,139,250,0.08)">⛓ Blockchain</span> confirms the transaction</div>
+        <h2>TX CONFIRMED — state updated, events emitted, logs recorded</h2>
+        <div class="summary">The transaction is included in a block and executed by all nodes. The world state is permanently updated. Events are emitted by the smart contract and stored as logs. The transaction hash is now findable on any block explorer. This action is irreversible.</div>
+      </div>
+    </div>
+    <div class="step-card-body">
+
+      <div class="sub-title">What happens in detail</div>
+      <div class="what-box">
+        <p>When a validator includes your transaction in a block, every full node in the network re-executes it to verify the result. The EVM runs the contract bytecode, applies the state changes (updating all relevant storage slots), and records the transaction receipt. The world state is permanently updated — balances change, allowances change, NFT ownership changes.</p>
+        <p>Any <code class="c">emit</code> statements in the Solidity code fire during execution and produce <strong>event logs</strong>. These logs are permanently stored on the blockchain and are how dApps, block explorers, and monitoring tools (like Blockaid) can understand what happened inside a transaction. They're indexed by Topics for fast filtering.</p>
+        <p>The block explorer now shows the transaction as "Success" with its full receipt: gas used, block number, timestamp, all event logs, and internal call trace. This is the final, immutable record.</p>
+      </div>
+
+      <div class="sub-title">Transaction receipt structure</div>
+      <div class="code-block">
+<span class="comment">// Transaction receipt — permanently stored on-chain</span>
+{
+  <span class="key">"transactionHash"</span>: <span class="str">"0x7db39872..."</span>,
+  <span class="key">"blockNumber"</span>:     <span class="num">18523401</span>,
+  <span class="key">"status"</span>:          <span class="str">"0x1"</span>,             <span class="comment">// 0x1 = success, 0x0 = reverted</span>
+  <span class="key">"gasUsed"</span>:         <span class="num">184721</span>,
+  <span class="key">"logs"</span>: [
+    {
+      <span class="key">"address"</span>: <span class="addr">"0xa0b86991..."</span>,          <span class="comment">// USDC contract</span>
+      <span class="key">"topics"</span>: [
+        <span class="str">"0xddf252..."</span>,                 <span class="comment">// Topic[0] = Transfer(address,address,uint256) event signature</span>
+        <span class="str">"0x000...YourAddress"</span>,         <span class="comment">// Topic[1] = indexed 'from'</span>
+        <span class="str">"0x000...UniswapPool"</span>           <span class="comment">// Topic[2] = indexed 'to'</span>
+      ],
+      <span class="key">"data"</span>: <span class="str">"0x000...0x5F5E100"</span>         <span class="comment">// non-indexed amount (100 USDC)</span>
+    }
+    <span class="comment">// ... more logs for each event emitted</span>
+  ]
+}
+      </div>
+
+      <div class="sub-title">Events and Topics explained</div>
+      <div class="what-box">
+        <p><strong>Topics</strong> are the indexed, searchable part of an event log. <code class="c">Topic[0]</code> is always the event signature hash (e.g. <code class="c">keccak256("Transfer(address,address,uint256)")</code> = <code class="c">0xddf252...</code>). Topics 1–3 are indexed parameters — Solidity lets you mark up to 3 parameters as <code class="c">indexed</code>, making them searchable via <code class="c">eth_getLogs</code> filters.</p>
+        <p><strong>Data</strong> contains the non-indexed parameters — ABI-encoded but not searchable. For a Transfer event: sender and recipient are indexed (Topics), but the amount is in Data (still readable, just not filterable by value).</p>
+        <p>Block explorers decode these logs using the contract ABI and present them as "Event Logs" — the tab you check on Basescan to verify a swap executed correctly.</p>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-card">
+          <div class="dc-label">Irreversibility</div>
+          <div class="dc-value" style="color:var(--risk-red)">Cannot be undone</div>
+          <div class="dc-desc">Once in a confirmed block, the transaction is permanent. The only way to "undo" a transfer is if the recipient sends it back voluntarily. This is why pre-confirmation security (Steps 2–5) is Blockaid's core value.</div>
+        </div>
+        <div class="detail-card">
+          <div class="dc-label">Block finality</div>
+          <div class="dc-value" style="color:var(--node)">When is it truly final?</div>
+          <div class="dc-desc">Ethereum: ~2 epochs (~6.5 min, 32 blocks). Base: when the batch is posted and verified on Ethereum L1 (~7 min). 1 confirmation is often enough for low-value txs; exchanges may wait for 12–64.</div>
+        </div>
+      </div>
+
+      <div class="callout callout-green">
+        <div class="callout-icon">🎯</div>
+        <div class="callout-body">
+          <strong>Full circle — what Blockaid monitored in this transaction</strong>
+          <p>Blockaid touched this transaction at Steps 2–5 (pre-confirmation simulation and risk scoring) and can also monitor post-confirmation via on-chain event logs. For enterprise monitoring customers, Blockaid watches event logs in real-time for suspicious patterns — large unexpected transfers, contract ownership changes, unusual approval events — and fires alerts or automated responses.</p>
+        </div>
+      </div>
+
+      <div class="se-box">
+        <div class="se-label">💼 SE Summary — The Full Picture</div>
+        <ul>
+          <li><strong>Steps 1 &amp; 7:</strong> User controls. The dApp initiates, the user confirms. Wallet holds the key.</li>
+          <li><strong>Steps 2–5 (Blockaid intercept):</strong> The security window. Blockaid simulates, analyses, and scores before the user acts. Cannot protect after Step 7.</li>
+          <li><strong>Steps 6:</strong> The informed decision point. Blockaid's labels make complex transactions understandable.</li>
+          <li><strong>Steps 8–10:</strong> Post-confirmation. Irreversible. Blockaid's on-chain monitoring watches for anomalies here.</li>
+          <li><strong>Events/Logs (Step 10):</strong> The permanent audit trail. Blockaid uses these for alerting, compliance, and portfolio tracking.</li>
+        </ul>
+      </div>
+
+      <div class="step-nav">
+        <button class="nav-btn" onclick="goTo(9)">← Previous</button>
+        <span class="step-counter">Step 10 of 10</span>
+        <a href="blockaid-transaction-flow.html" class="nav-btn primary" style="text-decoration:none;">← Back to Diagram</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let current = 1;
+
+function goTo(n) {
+  // Hide current card
+  document.getElementById('card' + current).classList.remove('active');
+  document.getElementById('ps' + current).classList.remove('active');
+
+  // Show new card
+  current = n;
+  document.getElementById('card' + n).classList.add('active');
+  document.getElementById('ps' + n).classList.add('active');
+
+  // Scroll to top of content
+  document.querySelector('.content').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
