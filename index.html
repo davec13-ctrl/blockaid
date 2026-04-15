@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transaction Flow — Blockaid SE Reference</title>
+<style>
+:root {
+  --bg: #0a0d14;
+  --surface: #111520;
+  --surface2: #181d2e;
+  --surface3: #1e2438;
+  --border: #252d45;
+  --border2: #2e3a58;
+  --dapp: #f472b6;
+  --wallet: #fb923c;
+  --blockaid: #34d399;
+  --node: #4f8ef7;
+  --chain: #a78bfa;
+  --risk-red: #f87171;
+  --risk-yellow: #fbbf24;
+  --risk-green: #34d399;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  --json: #fbbf24;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13px; line-height: 1.6; }
+
+/* ── HEADER ── */
+.header { background: linear-gradient(135deg,#111520,#0d1220); border-bottom:1px solid var(--border); padding:32px 48px; }
+.header-row { display:flex; align-items:center; gap:12px; margin-bottom:8px; }
+.badge { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:2px 8px; border-radius:10px; }
+.header h1 { font-size:24px; font-weight:700; }
+.header p { color:var(--text-muted); font-size:13px; margin-top:4px; }
+
+/* ── NAV TABS ── */
+.tabs { background:var(--surface); border-bottom:1px solid var(--border); padding:0 48px; display:flex; position:sticky; top:0; z-index:100; }
+.tab { padding:12px 20px; cursor:pointer; font-size:12px; font-weight:600; color:var(--text-dim); border-bottom:2px solid transparent; transition:all .2s; white-space:nowrap; }
+.tab:hover { color:var(--text); }
+.tab.active { color:var(--blockaid); border-bottom-color:var(--blockaid); }
+
+/* ── LAYOUT ── */
+.page { display:none; padding:36px 48px 80px; max-width:1200px; margin:0 auto; }
+.page.active { display:block; }
+
+/* ── SECTION TITLE ── */
+.sec-title { font-size:11px; text-transform:uppercase; letter-spacing:1.5px; color:var(--text-dim); margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+
+/* ── MAIN FLOW DIAGRAM ── */
+.flow-canvas {
+  background: var(--surface);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:40px 32px;
+  margin-bottom:28px;
+  overflow-x:auto;
+}
+
+/* ACTORS ROW */
+.actors { display:flex; justify-content:space-between; gap:0; margin-bottom:0; position:relative; }
+.actor {
+  display:flex; flex-direction:column; align-items:center; gap:10px;
+  flex:1; min-width:120px;
+}
+.actor-icon {
+  width:64px; height:64px; border-radius:16px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:28px; border:2px solid; flex-shrink:0;
+  position:relative; z-index:2;
+}
+.actor-name { font-size:12px; font-weight:700; text-align:center; }
+.actor-sub { font-size:10px; color:var(--text-dim); text-align:center; max-width:110px; }
+
+.actor-dapp .actor-icon { background:rgba(244,114,182,0.1); border-color:var(--dapp); color:var(--dapp); }
+.actor-wallet .actor-icon { background:rgba(251,146,60,0.1); border-color:var(--wallet); color:var(--wallet); }
+.actor-blockaid .actor-icon { background:rgba(52,211,153,0.1); border-color:var(--blockaid); color:var(--blockaid); }
+.actor-node .actor-icon { background:rgba(79,142,247,0.1); border-color:var(--node); color:var(--node); }
+.actor-chain .actor-icon { background:rgba(167,139,250,0.1); border-color:var(--chain); color:var(--chain); }
+
+/* LIFELINES */
+.lifelines {
+  display:flex; justify-content:space-between;
+  padding:0; margin:0; position:relative;
+}
+.lifeline {
+  flex:1; display:flex; justify-content:center;
+}
+.lifeline-line {
+  width:2px; background:var(--border2);
+  background: repeating-linear-gradient(to bottom, var(--border2) 0px, var(--border2) 8px, transparent 8px, transparent 14px);
+}
+
+/* STEPS CONTAINER */
+.steps { position:relative; margin:0; }
+
+/* STEP ROW */
+.step-row {
+  display:grid;
+  align-items:start;
+  gap:0;
+  margin-bottom:0;
+  position:relative;
+}
+.step-row-5 { grid-template-columns: 1fr 1fr 1fr 1fr 1fr; }
+
+.step-cell { display:flex; flex-direction:column; align-items:center; min-height:60px; position:relative; }
+.step-cell .ll { width:2px; flex:1; background: repeating-linear-gradient(to bottom, var(--border2) 0px, var(--border2) 8px, transparent 8px, transparent 14px); }
+
+/* MESSAGE ARROW */
+.msg-wrap {
+  grid-column: span 5;
+  display:flex; align-items:center;
+  padding:6px 0;
+  position:relative;
+}
+.msg-line {
+  height:2px; flex:1; position:relative;
+}
+.msg-line::after {
+  content:'▶'; position:absolute; right:-8px; top:-8px; font-size:12px;
+}
+.msg-line.reverse::after { content:''; }
+.msg-line.reverse::before { content:'◀'; position:absolute; left:-8px; top:-8px; font-size:12px; }
+
+.msg-label {
+  position:absolute; top:-18px; left:50%; transform:translateX(-50%);
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:6px; padding:3px 10px; font-size:10px; font-weight:600;
+  white-space:nowrap; z-index:3;
+}
+.msg-dot {
+  width:10px; height:10px; border-radius:50%; border:2px solid; flex-shrink:0;
+}
+
+/* STEP BLOCK */
+.step-block {
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:10px; padding:14px 16px; margin-bottom:8px;
+}
+.step-block h4 { font-size:12px; font-weight:700; margin-bottom:6px; }
+.step-block p { font-size:11px; color:var(--text-muted); line-height:1.5; }
+.step-block code { background:var(--surface); border:1px solid var(--border); border-radius:3px; padding:1px 5px; font-size:10px; color:var(--json); }
+
+/* FLOW ROW NEW DESIGN */
+.flow-row {
+  display:flex; align-items:stretch; margin-bottom:4px; position:relative;
+}
+.flow-node-col {
+  display:flex; flex-direction:column; align-items:center;
+  width:140px; flex-shrink:0;
+}
+.flow-node-col .vline {
+  width:2px; flex:1; min-height:20px;
+  background: repeating-linear-gradient(to bottom, var(--border2) 0px, var(--border2) 6px, transparent 6px, transparent 12px);
+}
+.flow-mid {
+  flex:1; display:flex; flex-direction:column; justify-content:center; padding:0 8px;
+}
+.arrow-row {
+  display:flex; align-items:center; gap:0; height:36px;
+}
+.arrow-seg { height:2px; flex:1; }
+.arrowhead { font-size:10px; line-height:1; flex-shrink:0; }
+
+/* FULL SEQUENCE DIAGRAM */
+.seq-diagram {
+  background:var(--surface); border:1px solid var(--border); border-radius:16px;
+  overflow:hidden; margin-bottom:28px;
+}
+.seq-header {
+  display:grid; border-bottom:2px solid var(--border2); padding:0;
+}
+.seq-col-header {
+  padding:16px 8px; text-align:center; font-size:11px; font-weight:700;
+  text-transform:uppercase; letter-spacing:0.5px; border-right:1px solid var(--border);
+}
+.seq-col-header:last-child { border-right:none; }
+.seq-body { position:relative; }
+
+.seq-step {
+  display:grid; border-bottom:1px solid var(--border); min-height:64px;
+  align-items:center;
+}
+.seq-step:last-child { border-bottom:none; }
+.seq-step:hover { background:rgba(255,255,255,0.02); }
+
+.seq-cell {
+  padding:10px 8px; border-right:1px solid var(--border);
+  height:100%; display:flex; align-items:center; justify-content:center;
+  position:relative;
+}
+.seq-cell:last-child { border-right:none; }
+
+.seq-event {
+  background:var(--surface2); border:1px solid; border-radius:8px;
+  padding:8px 12px; font-size:11px; text-align:center;
+  width:100%;
+}
+.seq-event strong { display:block; font-size:12px; margin-bottom:2px; }
+.seq-event span { font-size:10px; color:var(--text-dim); }
+.seq-event code { background:var(--bg); border:1px solid var(--border); border-radius:3px; padding:1px 4px; font-size:10px; }
+
+/* Arrow spanning cols */
+.seq-arrow {
+  grid-column: span 2;
+  display:flex; align-items:center; gap:0;
+  padding:0 12px;
+}
+.seq-arrow-line { height:2px; flex:1; }
+.seq-arrow-head { font-size:11px; }
+.seq-arrow-label {
+  position:absolute; top:4px; left:50%; transform:translateX(-50%);
+  font-size:10px; color:var(--text-muted); white-space:nowrap;
+  background:var(--surface); padding:1px 6px; border-radius:4px;
+}
+
+/* BLOCKAID INTERCEPTION HIGHLIGHT */
+.intercept-box {
+  border:2px solid var(--blockaid); border-radius:12px; padding:24px;
+  margin-bottom:28px; background:rgba(52,211,153,0.04);
+  position:relative;
+}
+.intercept-box::before {
+  content:'🛡 BLOCKAID INTERCEPT POINT';
+  position:absolute; top:-11px; left:20px;
+  background:var(--bg); padding:0 10px;
+  font-size:10px; font-weight:700; color:var(--blockaid); letter-spacing:1px;
+}
+
+/* CARDS GRID */
+.cards-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:28px; }
+.cards-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:28px; }
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; padding:18px 20px;
+}
+.card-head { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.card-icon { font-size:20px; }
+.card-head strong { font-size:13px; font-weight:700; }
+.card-head span { font-size:11px; color:var(--text-dim); display:block; margin-top:1px; }
+.card p { font-size:12px; color:var(--text-muted); line-height:1.6; }
+.card ul { padding-left:14px; font-size:12px; color:var(--text-muted); }
+.card ul li { margin-bottom:5px; }
+.card code { background:var(--surface2); border:1px solid var(--border); border-radius:3px; padding:1px 5px; font-size:11px; color:var(--json); }
+
+/* FUNCTION SELECTOR TABLE */
+.fn-table { width:100%; border-collapse:collapse; margin-bottom:28px; }
+.fn-table th {
+  background:var(--surface2); padding:10px 14px; text-align:left;
+  font-size:10px; text-transform:uppercase; letter-spacing:0.5px;
+  color:var(--text-dim); border-bottom:1px solid var(--border2);
+}
+.fn-table td { padding:10px 14px; border-bottom:1px solid var(--border); font-size:12px; vertical-align:top; }
+.fn-table tr:last-child td { border-bottom:none; }
+.fn-table tr:nth-child(even) { background:rgba(255,255,255,0.015); }
+.selector { font-family:monospace; color:var(--json); background:var(--surface2); padding:2px 6px; border-radius:3px; font-size:11px; }
+.risk-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; }
+.risk-high { background:rgba(248,113,113,0.15); color:var(--risk-red); }
+.risk-med { background:rgba(251,191,36,0.15); color:var(--risk-yellow); }
+.risk-low { background:rgba(52,211,153,0.15); color:var(--risk-green); }
+
+/* TERMINOLOGY GRID */
+.term-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:28px; }
+.term-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:10px; padding:14px 16px;
+}
+.term-name { font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.term-tag { display:inline-block; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; padding:1px 6px; border-radius:8px; margin-bottom:6px; }
+.term-def { font-size:12px; color:var(--text-muted); line-height:1.5; }
+.term-example { margin-top:6px; font-size:11px; color:var(--text-dim); border-left:2px solid var(--border2); padding-left:8px; font-style:italic; }
+
+/* RJSONRPC BOX */
+.jsonrpc-box {
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:10px; padding:16px 18px; margin-bottom:12px;
+}
+.jsonrpc-box .method { font-size:13px; font-weight:700; color:var(--json); margin-bottom:6px; }
+.jsonrpc-box .desc { font-size:12px; color:var(--text-muted); margin-bottom:8px; }
+.jsonrpc-box .when { font-size:11px; color:var(--text-dim); }
+.jsonrpc-box .risk { margin-top:8px; }
+
+/* CALLOUT */
+.callout {
+  display:flex; gap:14px; padding:16px 18px; border-radius:10px;
+  margin-bottom:20px; border:1px solid;
+}
+.callout-green { background:rgba(52,211,153,0.06); border-color:rgba(52,211,153,0.3); }
+.callout-blue { background:rgba(79,142,247,0.06); border-color:rgba(79,142,247,0.3); }
+.callout-red { background:rgba(248,113,113,0.06); border-color:rgba(248,113,113,0.3); }
+.callout-yellow { background:rgba(251,191,36,0.06); border-color:rgba(251,191,36,0.3); }
+.callout-icon { font-size:20px; flex-shrink:0; }
+.callout-body strong { display:block; font-size:13px; margin-bottom:4px; }
+.callout-body p { font-size:12px; color:var(--text-muted); }
+
+/* DIVIDER */
+.div { height:1px; background:var(--border); margin:32px 0; }
+
+/* PILL */
+.pill { display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:700; text-transform:uppercase; margin:2px; }
+
+/* MAIN SEQUENCE DIAGRAM (SVG-like CSS) */
+.main-seq {
+  background:var(--surface); border:1px solid var(--border); border-radius:16px;
+  padding:28px 20px; margin-bottom:28px; overflow-x:auto;
+}
+.main-seq-inner { min-width:900px; }
+
+/* Actor headers */
+.seq-actors { display:flex; margin-bottom:0; }
+.seq-actor {
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:0 4px;
+}
+.seq-actor-box {
+  padding:10px 14px; border-radius:10px; border:2px solid;
+  font-size:11px; font-weight:700; text-align:center; width:100%;
+}
+.seq-actor-sub { font-size:9px; color:var(--text-dim); text-align:center; }
+
+/* Message rows */
+.seq-msgs { position:relative; }
+.seq-msg-row {
+  display:flex; align-items:center; min-height:52px;
+  position:relative; border-bottom:1px solid rgba(255,255,255,0.03);
+  padding:4px 0;
+}
+.seq-msg-row:last-child { border-bottom:none; }
+
+.lc { flex:1; display:flex; justify-content:center; align-items:center; position:relative; }
+.lc .vl {
+  position:absolute; top:0; bottom:0; left:50%;
+  width:1px;
+  background: repeating-linear-gradient(to bottom, var(--border2) 0px, var(--border2) 5px, transparent 5px, transparent 9px);
+}
+
+/* Horizontal message arrow */
+.hmsg {
+  position:absolute; display:flex; flex-direction:column; align-items:center;
+  z-index:2;
+}
+.hmsg-line {
+  height:2px; position:relative;
+}
+.hmsg-line::after { content:'▶'; position:absolute; right:-8px; top:-9px; font-size:11px; }
+.hmsg-line.left::after { content:''; }
+.hmsg-line.left::before { content:'◀'; position:absolute; left:-8px; top:-9px; font-size:11px; }
+.hmsg-tag {
+  position:absolute; top:-20px; left:50%; transform:translateX(-50%);
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:5px; padding:2px 8px;
+  font-size:10px; font-weight:600; white-space:nowrap; z-index:5;
+}
+.hmsg-sub {
+  position:absolute; bottom:-18px; left:50%; transform:translateX(-50%);
+  font-size:9px; color:var(--text-dim); white-space:nowrap;
+}
+
+/* Activation box */
+.actbox {
+  position:absolute; left:50%; transform:translateX(-50%);
+  width:10px; border-radius:3px; z-index:3;
+}
+
+/* Row label */
+.row-label {
+  position:absolute; left:0; top:50%; transform:translateY(-50%);
+  background:var(--surface3); border:1px solid var(--border);
+  border-radius:5px; padding:3px 8px; font-size:10px; color:var(--text-dim);
+  white-space:nowrap; z-index:5;
+}
+
+/* Step number bubble */
+.snum {
+  width:22px; height:22px; border-radius:50%; border:1px solid;
+  display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:700; flex-shrink:0; z-index:4;
+}
+
+/* RISK SIGNALS */
+.risk-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:28px; }
+.risk-card {
+  border-radius:10px; padding:16px; border:1px solid;
+}
+.risk-card-red { background:rgba(248,113,113,0.07); border-color:rgba(248,113,113,0.3); }
+.risk-card-yellow { background:rgba(251,191,36,0.07); border-color:rgba(251,191,36,0.3); }
+.risk-card-green { background:rgba(52,211,153,0.07); border-color:rgba(52,211,153,0.3); }
+.risk-card h4 { font-size:12px; font-weight:700; margin-bottom:8px; }
+.risk-card ul { padding-left:14px; font-size:11px; color:var(--text-muted); }
+.risk-card ul li { margin-bottom:4px; }
+</style>
+</head>
+<body>
+
+<style>
+#login-gate {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #0a0d14;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+#login-box {
+  background: #111520; border: 1px solid #252d45;
+  border-radius: 16px; padding: 48px 40px; width: 100%; max-width: 380px;
+  box-shadow: 0 24px 64px rgba(0,0,0,.6);
+}
+#login-box h2 {
+  color: #34d399; font-size: 1.4rem; font-weight: 700;
+  margin: 0 0 6px; letter-spacing: -.01em;
+}
+#login-box p { color: #4f5b7a; font-size: .85rem; margin: 0 0 32px; }
+#login-box label {
+  display: block; font-size: .75rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .08em;
+  color: #6b7a99; margin-bottom: 6px;
+}
+#login-box input {
+  width: 100%; padding: 11px 14px; border-radius: 8px;
+  border: 1px solid #252d45; background: #181d2e;
+  color: #e2e8f0; font-size: .95rem; margin-bottom: 20px;
+  outline: none; box-sizing: border-box;
+  transition: border-color .2s;
+}
+#login-box input:focus { border-color: #34d399; }
+#login-btn {
+  width: 100%; padding: 13px; border-radius: 8px;
+  background: #34d399; color: #0a0d14;
+  font-weight: 700; font-size: 1rem; border: none;
+  cursor: pointer; transition: opacity .2s;
+}
+#login-btn:hover { opacity: .88; }
+#login-error {
+  color: #f87171; font-size: .82rem;
+  margin-top: 12px; display: none; text-align: center;
+}
+#page-content { display: none; }
+</style>
+
+<div id="login-gate">
+  <div id="login-box">
+    <h2>⬡ Blockaid</h2>
+    <p>Internal reference — restricted access</p>
+    <label for="u">Username</label>
+    <input id="u" type="text" placeholder="username" autocomplete="username" />
+    <label for="p">Password</label>
+    <input id="p" type="password" placeholder="password" autocomplete="current-password" />
+    <button id="login-btn" onclick="doLogin()">Sign In</button>
+    <div id="login-error">Incorrect username or password.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  if(sessionStorage.getItem('blk_auth')==='1'){
+    document.addEventListener('DOMContentLoaded',function(){
+      document.getElementById('login-gate').style.display='none';
+      var c=document.getElementById('page-content');
+      if(c) c.style.display='';
+    });
+  }
+})();
+function doLogin(){
+  var u=document.getElementById('u').value.trim();
+  var p=document.getElementById('p').value;
+  if(u==='davidc' && p==='blockaid1!'){
+    sessionStorage.setItem('blk_auth','1');
+    document.getElementById('login-gate').style.display='none';
+    var c=document.getElementById('page-content');
+    if(c) c.style.display='';
+  } else {
+    document.getElementById('login-error').style.display='block';
+  }
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter') doLogin();
+});
+</script>
+
+<div id="page-content">
+
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <span class="badge" style="background:#1a2a1a;color:var(--blockaid);border:1px solid var(--blockaid)">Blockaid</span>
+    <span class="badge" style="background:#1a1d27;color:#94a3b8;border:1px solid #2e3350">SE Reference</span>
+  </div>
+  <h1>Transaction Flow — dApp → Wallet → Blockchain</h1>
+  <p>Full lifecycle with Blockaid interception points · Key functions · SE terminology guide</p>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" onclick="showPage('flow')">① Transaction Flow</div>
+  <div class="tab" onclick="showPage('jsonrpc')">② JSON-RPC Methods</div>
+  <div class="tab" onclick="showPage('selectors')">③ Function Selectors</div>
+  <div class="tab" onclick="showPage('blockaid')">④ Blockaid Signals</div>
+  <div class="tab" onclick="showPage('glossary')">⑤ SE Glossary</div>
+  <div class="tab" onclick="showPage('customers')">⑥ Target Customers</div>
+</div>
+
+<!-- ═══════════ PAGE 1: TRANSACTION FLOW ═══════════ -->
+<div class="page active" id="page-flow">
+
+  <!-- ACTORS -->
+  <div class="main-seq">
+    <div class="main-seq-inner">
+      <!-- Actor headers -->
+      <div class="seq-actors">
+        <div class="seq-actor">
+          <div class="seq-actor-box" style="border-color:var(--dapp);color:var(--dapp);background:rgba(244,114,182,0.08)">🌐 dApp</div>
+          <div class="seq-actor-sub">Uniswap, OpenSea<br>any Web3 frontend</div>
+        </div>
+        <div class="seq-actor">
+          <div class="seq-actor-box" style="border-color:var(--wallet);color:var(--wallet);background:rgba(251,146,60,0.08)">🦊 Wallet</div>
+          <div class="seq-actor-sub">MetaMask, Rainbow<br>Phantom, Ledger</div>
+        </div>
+        <div class="seq-actor">
+          <div class="seq-actor-box" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.08)">🛡 Blockaid</div>
+          <div class="seq-actor-sub">Simulation API<br>Risk Engine</div>
+        </div>
+        <div class="seq-actor">
+          <div class="seq-actor-box" style="border-color:var(--node);color:var(--node);background:rgba(79,142,247,0.08)">⚡ RPC Node</div>
+          <div class="seq-actor-sub">Alchemy, Infura<br>local node</div>
+        </div>
+        <div class="seq-actor">
+          <div class="seq-actor-box" style="border-color:var(--chain);color:var(--chain);background:rgba(167,139,250,0.08)">⛓ Blockchain</div>
+          <div class="seq-actor-sub">Ethereum, Base<br>Polygon, Arbitrum</div>
+        </div>
+      </div>
+
+      <!-- Step rows -->
+      <div style="position:relative;margin-top:0;">
+
+        <!-- Vertical lifelines background -->
+        <div style="position:absolute;top:0;bottom:0;left:0;right:0;display:flex;pointer-events:none;z-index:0;">
+          <div style="flex:1;display:flex;justify-content:center;"><div style="width:1px;background:repeating-linear-gradient(to bottom,var(--border2) 0,var(--border2) 6px,transparent 6px,transparent 12px);"></div></div>
+          <div style="flex:1;display:flex;justify-content:center;"><div style="width:1px;background:repeating-linear-gradient(to bottom,var(--border2) 0,var(--border2) 6px,transparent 6px,transparent 12px);"></div></div>
+          <div style="flex:1;display:flex;justify-content:center;"><div style="width:1px;background:repeating-linear-gradient(to bottom,var(--border2) 0,var(--border2) 6px,transparent 6px,transparent 12px);"></div></div>
+          <div style="flex:1;display:flex;justify-content:center;"><div style="width:1px;background:repeating-linear-gradient(to bottom,var(--border2) 0,var(--border2) 6px,transparent 6px,transparent 12px);"></div></div>
+          <div style="flex:1;display:flex;justify-content:center;"><div style="width:1px;background:repeating-linear-gradient(to bottom,var(--border2) 0,var(--border2) 6px,transparent 6px,transparent 12px);"></div></div>
+        </div>
+
+        <!-- STEP 1 -->
+        <div style="position:relative;z-index:1;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div style="display:flex;align-items:center;">
+            <div style="flex:1;display:flex;justify-content:center;">
+              <div class="snum" style="border-color:var(--dapp);color:var(--dapp);background:rgba(244,114,182,0.1)">1</div>
+            </div>
+            <div style="flex:3;padding:0 8px;">
+              <div style="height:2px;background:linear-gradient(90deg,var(--dapp),var(--wallet));position:relative;">
+                <div style="position:absolute;right:-6px;top:-8px;font-size:11px;color:var(--wallet);">▶</div>
+              </div>
+              <div style="text-align:center;margin-top:4px;">
+                <span style="background:var(--surface2);border:1px solid var(--border2);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--dapp);">eth_sendTransaction</span>
+                <span style="font-size:10px;color:var(--text-dim);display:block;margin-top:2px;">{ to, value, data: 0xa9059cbb... }</span>
+              </div>
+            </div>
+            <div style="flex:1;"></div><div style="flex:1;"></div><div style="flex:1;"></div>
+          </div>
+          <div style="text-align:center;margin-top:6px;font-size:11px;color:var(--text-dim);">User clicks "Confirm" on dApp UI — JSON-RPC request sent to wallet provider</div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div style="position:relative;z-index:1;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(52,211,153,0.03);">
+          <div style="display:flex;align-items:center;">
+            <div style="flex:1;"></div>
+            <div style="flex:1;display:flex;justify-content:center;">
+              <div class="snum" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.1)">2</div>
+            </div>
+            <div style="flex:1;padding:0 8px;">
+              <div style="height:2px;background:linear-gradient(90deg,var(--wallet),var(--blockaid));position:relative;">
+                <div style="position:absolute;right:-6px;top:-8px;font-size:11px;color:var(--blockaid);">▶</div>
+              </div>
+              <div style="text-align:center;margin-top:4px;">
+                <span style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--blockaid);">🛡 scan_transaction(rawTx)</span>
+                <span style="font-size:10px;color:var(--text-dim);display:block;margin-top:2px;">Wallet SDK calls Blockaid BEFORE showing popup</span>
+              </div>
+            </div>
+            <div style="flex:1;"></div><div style="flex:1;"></div>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div style="position:relative;z-index:1;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(52,211,153,0.03);">
+          <div style="display:flex;align-items:center;">
+            <div style="flex:1;"></div><div style="flex:1;"></div>
+            <div style="flex:1;display:flex;justify-content:center;">
+              <div class="snum" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.1)">3</div>
+            </div>
+            <div style="flex:1;padding:0 8px;">
+              <div style="height:2px;background:linear-gradient(90deg,var(--blockaid),var(--node));position:relative;">
+                <div style="position:absolute;right:-6px;top:-8px;font-size:11px;color:var(--node);">▶</div>
+              </div>
+              <div style="text-align:center;margin-top:4px;">
+                <span style="background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--node);">eth_call (simulation)</span>
+                <span style="font-size:10px;color:var(--text-dim);display:block;margin-top:2px;">Read world state + simulate pending tx</span>
+              </div>
+            </div>
+            <div style="flex:1;"></div>
+          </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div style="position:relative;z-index:1;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(52,211,153,0.03);">
+          <div style="display:flex;align-items:center;">
+            <div style="flex:1;"></div><div style="flex:1;"></div>
+            <div style="flex:1;display:flex;justify-content:center;">
+              <div class="snum" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.1)">4</div>
+            </div>
+            <div style="flex:1;padding:0 8px;">
+              <div style="height:2px;background:linear-gradient(90deg,var(--node),var(--blockaid));border:none;position:relative;">
+                <div style="position:absolute;left:-6px;top:-8px;font-size:11px;color:var(--blockaid);">◀</div>
+              </div>
+              <div style="text-align:center;margin-top:4px;">
+                <span style="background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--node);">world state + simulation result</span>
+                <span style="font-size:10px;color:var(--text-dim);display:block;margin-top:2px;">Balances, allowances, post-tx state changes</span>
+              </div>
+            </div>
+            <div style="flex:1;"></div>
+          </div>
+        </div>
+
+        <!-- STEP 5 -->
+        <div style="position:relative;z-index:1;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(52,211,153,0.03);">
+          <div style="display:flex;align-items:center;">
+            <div style="flex:1;"></div>
+            <div style="flex:1;display:flex;justify-content:center;">
+              <div class="snum" style="border-color:var(--blockaid);color:var(--blockaid);background:rgba(52,211,153,0.1)">5</div>
+            </div>
+            <div style="flex:1;padding:0 8px;">
+              <div style="height:2px;background:linear-gradient(90deg,var(--blockaid),var(--wallet));position:relative;">
+                <div style="position:absolute;right:-6px;top:-8px;font-size:11px;color:var(--wallet);">▶</div>
+              </div>
+              <div style="text-align:center;margin-top:4px;">
+                <span style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--blockaid);">risk_score + decoded_tx</span>
+                <span style="font-size:10px;color:var(--text-dim);display:block;margin-top:2px;">BENIGN / WARNING / MALICIOUS + what will change</span>
+              </div>
+            </div>
+            <div style="flex:1;"></div><div style="flex:1;"></div>
+          </div>
+        </div>
+
+        <!-- STEP 6 -->
+        <div style="position:relative;z-index:1;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div style="display:flex;align-items:center;">
+            <div style="flex:1;"></div>
+            <div style="flex:1;display:flex;justify-content:center;">
+              <div class="snum" style="border-color:var(--wallet);color:var(--wallet);background:rgba(251,146,60,0.1)">6</div>
+            </div>
+            <div style="flex:3;padding:0 8px;text-align:center;">
+              <div style="background:rgba(251,146,60,0.07);border:1px solid rgba(251,146,60,0.3);border-radius:8px;padding:8px;font-size:11px;color:var(--wallet);">
+                <strong>Wallet shows confirmation popup</strong><br>
+                <span style="font-size:10px;color:var(--text-muted);">With Blockaid risk label · "This looks safe" or "⚠ Warning: drainer detected"</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 7 USER APPROVES -->
+        <div style="position:relative;z-index:1;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div style="display:flex;align-items:center;">
+            <div style="flex:1;display:flex;justify-content:center;">
+              <div class="snum" style="border-color:var(--dapp);color:var(--dapp);background:rgba(244,114,182,0.1)">7</div>
+            </div>
+            <div style="flex:1;padding:0 8px;">
+              <div style="height:2px;background:linear-gradient(90deg,var(--dapp),var(--wallet));position:relative;">
+                <div style="position:absolute;right:-6px;top:-8px;font-size:11px;color:var(--wallet);">▶</div>
+              </div>
+              <div style="text-align:center;margin-top:4px;font-size:10px;color:var(--text-dim);">User clicks "Confirm"</div>
+            </div>
+            <div style="flex:1;"></div><div style="flex:1;"></div><div style="flex:1;"></div>
+          </div>
+        </div>
+
+        <!-- STEP 8 BROADCAST -->
+        <div style="position:relative;z-index:1;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div style="display:flex;align-items:center;">
+            <div style="flex:1;"></div>
+            <div style="flex:1;display:flex;justify-content:center;">
+              <div class="snum" style="border-color:var(--wallet);color:var(--wallet);background:rgba(251,146,60,0.1)">8</div>
+            </div>
+            <div style="flex:1;"></div>
+            <div style="flex:1;padding:0 8px;">
+              <div style="height:2px;background:linear-gradient(90deg,var(--wallet),var(--node));position:relative;">
+                <div style="position:absolute;right:-6px;top:-8px;font-size:11px;color:var(--node);">▶</div>
+              </div>
+              <div style="text-align:center;margin-top:4px;">
+                <span style="background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--node);">eth_sendRawTransaction</span>
+                <span style="font-size:10px;color:var(--text-dim);display:block;margin-top:2px;">Signed tx broadcast to network</span>
+              </div>
+            </div>
+            <div style="flex:1;"></div>
+          </div>
+        </div>
+
+        <!-- STEP 9 MEMPOOL -->
+        <div style="position:relative;z-index:1;padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.04);">
+          <div style="display:flex;align-items:center;">
+            <div style="flex:1;"></div><div style="flex:1;"></div><div style="flex:1;"></div>
+            <div style="flex:1;display:flex;justify-content:center;">
+              <div class="snum" style="border-color:var(--node);color:var(--node);background:rgba(79,142,247,0.1)">9</div>
+            </div>
+            <div style="flex:1;padding:0 8px;">
+              <div style="height:2px;background:linear-gradient(90deg,var(--node),var(--chain));position:relative;">
+                <div style="position:absolute;right:-6px;top:-8px;font-size:11px;color:var(--chain);">▶</div>
+              </div>
+              <div style="text-align:center;margin-top:4px;">
+                <span style="font-size:10px;color:var(--text-dim);">Tx enters mempool → validator picks up → included in block</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 10 MINED -->
+        <div style="position:relative;z-index:1;padding:14px 0;">
+          <div style="display:flex;align-items:center;">
+            <div style="flex:1;"></div><div style="flex:1;"></div><div style="flex:1;"></div><div style="flex:1;"></div>
+            <div style="flex:1;display:flex;justify-content:center;">
+              <div style="background:rgba(167,139,250,0.1);border:2px solid var(--chain);border-radius:10px;padding:10px;text-align:center;font-size:11px;color:var(--chain);font-weight:700;">
+                ✓ TX CONFIRMED<br><span style="font-size:10px;font-weight:400;color:var(--text-dim);">State updated · Events emitted · Logs recorded</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- BLOCKAID INTERCEPT DETAIL -->
+  <div class="intercept-box">
+    <div class="cards-grid">
+      <div class="card">
+        <div class="card-head">
+          <span class="card-icon">🔍</span>
+          <div><strong>What Blockaid decodes</strong><span>From raw calldata in Steps 2–5</span></div>
+        </div>
+        <ul>
+          <li><strong>Function selector</strong> — what function is being called</li>
+          <li><strong>Token approvals</strong> — who is being approved, how much</li>
+          <li><strong>Asset transfers</strong> — what tokens/ETH will move</li>
+          <li><strong>Permit2 signatures</strong> — off-chain approvals being recorded</li>
+          <li><strong>Contract verification</strong> — is the contract known/verified?</li>
+          <li><strong>Simulation delta</strong> — exact balance changes post-execution</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-icon">📡</span>
+          <div><strong>What Blockaid reads from ledger</strong><span>Via eth_call to RPC node</span></div>
+        </div>
+        <ul>
+          <li><code>balanceOf(address)</code> — current token balance</li>
+          <li><code>allowance(owner, spender)</code> — existing approvals</li>
+          <li><strong>Contract bytecode</strong> — is it a known contract?</li>
+          <li><strong>Contract age</strong> — newly deployed = higher risk</li>
+          <li><strong>Simulation result</strong> — post-tx world state snapshot</li>
+          <li><strong>MEV exposure</strong> — can this tx be front-run?</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout callout-green" style="margin-bottom:0">
+      <div class="callout-icon">⚡</div>
+      <div class="callout-body">
+        <strong>Why pre-confirmation interception matters</strong>
+        <p>Once a transaction hits the blockchain it is irreversible. Blockaid's value is entirely in Steps 2–5 — the window between the dApp requesting a transaction and the user confirming it. This is the only moment where a bad transaction can be stopped. Post-confirmation monitoring (watching events on-chain) can detect attacks but cannot reverse them.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY CONCEPTS CARDS -->
+  <div class="sec-title" style="margin-top:28px">Key Concepts in the Flow</div>
+  <div class="cards-grid-3">
+    <div class="card">
+      <div class="card-head"><span class="card-icon">📦</span><div><strong>Mempool</strong><span>Pre-confirmation waiting room</span></div></div>
+      <p>The pending transaction pool where signed transactions wait to be picked up by a validator/sequencer. Public — anyone can see pending txs. Source of MEV and front-running attacks.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-icon">🌍</span><div><strong>World State</strong><span>Current ledger snapshot</span></div></div>
+      <p>The complete current state of all accounts and contracts at the latest block — balances, nonces, contract storage (mappings). Blockaid reads this to simulate outcomes.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-icon">🔐</span><div><strong>EIP-712 / Typed Signing</strong><span>Off-chain signatures</span></div></div>
+      <p>Structured off-chain message signing (used in Safe, Permit2, Seaport). Creates no on-chain transaction until the signature is submitted. Blockaid scans <code>eth_signTypedData</code> calls too.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-icon">⛽</span><div><strong>Gas &amp; Gas Limit</strong><span>Transaction cost control</span></div></div>
+      <p>Gas = computational work. Gas limit = max you'll pay. If a tx hits the limit it reverts (fails) but still costs gas. Unusually high gas limits can signal complex/malicious contract calls.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-icon">🔢</span><div><strong>Nonce</strong><span>Replay protection counter</span></div></div>
+      <p>An incrementing counter per account. Each tx must use the next nonce in sequence. Prevents the same signed transaction being broadcast twice. Safe also has its own internal nonce.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-icon">📋</span><div><strong>ABI Encoding</strong><span>How parameters are packed</span></div></div>
+      <p>Application Binary Interface — the encoding standard for calldata. Each parameter is padded to 32 bytes. Blockaid decodes ABI to extract exact addresses, amounts, and token types from raw hex.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 2: JSON-RPC ═══════════ -->
+<div class="page" id="page-jsonrpc">
+  <div class="sec-title">JSON-RPC Methods — What Blockaid Monitors</div>
+
+  <div class="callout callout-blue" style="margin-bottom:24px">
+    <div class="callout-icon">📡</div>
+    <div class="callout-body">
+      <strong>JSON-RPC is the interface between every dApp/wallet and the blockchain</strong>
+      <p>Every action — from reading a balance to sending a transaction — is a JSON-RPC call. Blockaid's SDK intercepts these calls at the wallet layer before they reach the network, giving it full visibility into what a dApp is trying to do.</p>
+    </div>
+  </div>
+
+  <div class="jsonrpc-box">
+    <div class="method">eth_sendTransaction</div>
+    <div class="desc">Sends a transaction to the network. The most critical call — creates on-chain state changes.</div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:monospace;font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+      { "to": "0x833589...", "value": "0x0", "data": "0xa9059cbb0000...7aa28...000186a0" }
+    </div>
+    <div class="when">📌 Blockaid decodes: function selector → token transfer · destination address · amount</div>
+    <div class="risk"><span class="risk-badge risk-high">HIGH PRIORITY</span> — any token transfer, approve, or contract interaction flows through here</div>
+  </div>
+
+  <div class="jsonrpc-box">
+    <div class="method">eth_signTypedData_v4 (EIP-712)</div>
+    <div class="desc">Signs structured off-chain data. Used by Permit2, Safe multisig, Seaport (OpenSea), and other protocols. Does NOT create a transaction — but the signature can be used later to authorize on-chain actions.</div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:monospace;font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+      { domain: { chainId, verifyingContract }, message: { spender, amount, deadline, nonce } }
+    </div>
+    <div class="when">📌 Blockaid decodes: who is being authorized · how much · expiry time · is the verifyingContract known?</div>
+    <div class="risk"><span class="risk-badge risk-high">HIGH PRIORITY</span> — phishing sites abuse this to steal unlimited token approvals with no gas cost to victim</div>
+  </div>
+
+  <div class="jsonrpc-box">
+    <div class="method">eth_sign / personal_sign</div>
+    <div class="desc">Signs arbitrary raw bytes or a message. Older method — less structured than EIP-712. Often used in authentication but also abused in signature phishing attacks.</div>
+    <div class="when">📌 Blockaid flags: is this a known auth pattern or a suspicious raw hash that could authorize a transfer?</div>
+    <div class="risk"><span class="risk-badge risk-high">HIGH PRIORITY</span> — "blind signing" — user cannot read what they're signing</div>
+  </div>
+
+  <div class="jsonrpc-box">
+    <div class="method">eth_call</div>
+    <div class="desc">Read-only call to a contract. Does not create a transaction, costs no gas. Used to read state: balances, allowances, prices. Blockaid uses this internally to simulate transactions against live state.</div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px;font-family:monospace;font-size:11px;color:var(--text-muted);margin-bottom:8px;">
+      eth_call({ to: USDC, data: "0x70a08231" + address }) → returns balance
+    </div>
+    <div class="when">📌 Blockaid uses this: reads world state before simulation · checks allowances · verifies contract existence</div>
+    <div class="risk"><span class="risk-badge risk-low">READ ONLY</span> — no state change possible, but used by Blockaid as its eyes into the chain</div>
+  </div>
+
+  <div class="jsonrpc-box">
+    <div class="method">eth_sendRawTransaction</div>
+    <div class="desc">Broadcasts a pre-signed transaction to the network. The wallet signs the tx locally, then uses this to push it to a node. This is the point of no return — once submitted, it enters the mempool.</div>
+    <div class="when">📌 Post this point Blockaid can only monitor (not prevent). Pre-signing interception is critical.</div>
+    <div class="risk"><span class="risk-badge risk-med">BROADCAST</span> — irreversible once it hits the mempool</div>
+  </div>
+
+  <div class="jsonrpc-box">
+    <div class="method">wallet_switchEthereumChain / wallet_addEthereumChain</div>
+    <div class="desc">dApp requests to switch the wallet to a different chain or add a new custom chain. A common attack vector — malicious dApps add fake chains that mimic mainnet to steal funds.</div>
+    <div class="when">📌 Blockaid checks: is this a known ChainID? Does the RPC URL match known providers? Is the chain verified?</div>
+    <div class="risk"><span class="risk-badge risk-high">HIGH PRIORITY</span> — chain spoofing attack vector</div>
+  </div>
+
+  <div class="jsonrpc-box">
+    <div class="method">eth_getTransactionReceipt</div>
+    <div class="desc">Fetches the receipt of a confirmed transaction — includes status (success/fail), gas used, and all event logs. Used post-confirmation to verify outcomes and extract emitted events.</div>
+    <div class="when">📌 Contains the Logs array — all events emitted during execution. Source of truth for what actually happened.</div>
+    <div class="risk"><span class="risk-badge risk-low">READ ONLY</span> — post-confirmation monitoring tool</div>
+  </div>
+
+  <div class="jsonrpc-box">
+    <div class="method">eth_getLogs</div>
+    <div class="desc">Queries all events emitted by contracts matching a filter (address, topic, block range). How block explorers and indexers build their databases. Blockaid uses this for on-chain monitoring.</div>
+    <div class="when">📌 Filter by topic[0] = Transfer event hash to find all token movements. Filter by topic[2] = address to find all approvals granted to a spender.</div>
+    <div class="risk"><span class="risk-badge risk-low">MONITORING</span> — used for post-confirmation threat intelligence</div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 3: FUNCTION SELECTORS ═══════════ -->
+<div class="page" id="page-selectors">
+  <div class="sec-title">Function Selectors — First 4 Bytes of Calldata</div>
+
+  <div class="callout callout-yellow" style="margin-bottom:24px">
+    <div class="callout-icon">💡</div>
+    <div class="callout-body">
+      <strong>How to read a function selector</strong>
+      <p>Every transaction's <code>data</code> field starts with a 4-byte selector = keccak256("functionName(types)")[0:4]. This tells the contract which function to run. Blockaid identifies the intent of any transaction in milliseconds by matching these selectors against a known database.</p>
+    </div>
+  </div>
+
+  <table class="fn-table">
+    <thead>
+      <tr><th>Selector</th><th>Function</th><th>Contract Type</th><th>What it does</th><th>Blockaid Risk</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="selector">0xa9059cbb</span></td>
+        <td><code>transfer(address,uint256)</code></td>
+        <td>ERC-20 Token</td>
+        <td>Sends tokens directly from caller to recipient. No approval needed.</td>
+        <td><span class="risk-badge risk-med">MONITOR</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0x095ea7b3</span></td>
+        <td><code>approve(address,uint256)</code></td>
+        <td>ERC-20 Token</td>
+        <td>Grants a spender permission to move tokens on your behalf. If value = max uint256 = unlimited exposure.</td>
+        <td><span class="risk-badge risk-high">HIGH RISK</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0x23b872dd</span></td>
+        <td><code>transferFrom(address,address,uint256)</code></td>
+        <td>ERC-20 Token</td>
+        <td>Spender pulls tokens from owner's wallet (using existing allowance). How DEXs actually move your tokens.</td>
+        <td><span class="risk-badge risk-high">HIGH RISK</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0xdd62ed3e</span></td>
+        <td><code>allowance(address,address)</code></td>
+        <td>ERC-20 Token</td>
+        <td>Read-only: returns how much a spender can still pull from an owner. No state change.</td>
+        <td><span class="risk-badge risk-low">READ ONLY</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0x70a08231</span></td>
+        <td><code>balanceOf(address)</code></td>
+        <td>ERC-20 / ERC-721</td>
+        <td>Read-only: returns token balance of an address.</td>
+        <td><span class="risk-badge risk-low">READ ONLY</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0x6a761202</span></td>
+        <td><code>execTransaction(...)</code></td>
+        <td>Safe Multisig</td>
+        <td>Executes a transaction from a Safe multisig after required signers have approved. Contains nested tx data.</td>
+        <td><span class="risk-badge risk-high">HIGH RISK</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0x3593564c</span></td>
+        <td><code>execute(bytes,bytes[],uint256)</code></td>
+        <td>Uniswap Universal Router</td>
+        <td>Executes one or more swap commands. Calldata contains encoded routing instructions (multi-hop).</td>
+        <td><span class="risk-badge risk-med">MONITOR</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0xd0e30db0</span></td>
+        <td><code>deposit()</code></td>
+        <td>WETH Contract</td>
+        <td>Wraps ETH → WETH. Payable function — ETH sent in <code>value</code> field.</td>
+        <td><span class="risk-badge risk-low">LOW RISK</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0x2e1a7d4d</span></td>
+        <td><code>withdraw(uint256)</code></td>
+        <td>WETH Contract</td>
+        <td>Unwraps WETH → ETH. Returns ETH to caller.</td>
+        <td><span class="risk-badge risk-low">LOW RISK</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0x42842e0e</span></td>
+        <td><code>safeTransferFrom(address,address,uint256)</code></td>
+        <td>ERC-721 NFT</td>
+        <td>Transfers an NFT. Checks recipient can handle NFTs. Used on OpenSea, Blur etc.</td>
+        <td><span class="risk-badge risk-high">HIGH RISK</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0xe985e9c5</span></td>
+        <td><code>isApprovedForAll(address,address)</code></td>
+        <td>ERC-721 / ERC-1155</td>
+        <td>Checks if an operator is approved for ALL tokens in a collection (not just one).</td>
+        <td><span class="risk-badge risk-low">READ ONLY</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0xa22cb465</span></td>
+        <td><code>setApprovalForAll(address,bool)</code></td>
+        <td>ERC-721 / ERC-1155</td>
+        <td>Grants/revokes permission to move ALL tokens in a collection. Most dangerous NFT approval — one call exposes entire collection.</td>
+        <td><span class="risk-badge risk-high">CRITICAL</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0xb6b55f25</span></td>
+        <td><code>deposit(uint256)</code></td>
+        <td>DeFi Vault (ERC-4626)</td>
+        <td>Deposits tokens into a yield vault. Used by Aave, Compound, Yearn. Check the vault contract is legitimate.</td>
+        <td><span class="risk-badge risk-med">MONITOR</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0xc2998238</span></td>
+        <td><code>permit(...)</code> (EIP-2612)</td>
+        <td>Permit-enabled ERC-20</td>
+        <td>Gasless approval via signature. Equivalent to approve() but signed off-chain. USDC, DAI support this.</td>
+        <td><span class="risk-badge risk-high">HIGH RISK</span></td>
+      </tr>
+      <tr>
+        <td><span class="selector">0x87517c45</span></td>
+        <td><code>increaseAllowance(address,uint256)</code></td>
+        <td>ERC-20 Token</td>
+        <td>Safer version of approve — adds to existing allowance rather than replacing it. Avoids front-running race condition.</td>
+        <td><span class="risk-badge risk-high">HIGH RISK</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-red">
+    <div class="callout-icon">⚠️</div>
+    <div class="callout-body">
+      <strong>The most dangerous selector combinations for Blockaid to flag</strong>
+      <p><strong>approve + unknown contract</strong> — granting unlimited allowance to an unverified or newly deployed contract is the #1 phishing vector. <strong>setApprovalForAll + marketplace</strong> — if the marketplace isn't OpenSea/Blur/known, this empties your entire NFT collection. <strong>eth_signTypedData with no known verifyingContract</strong> — blind Permit2-style signature that could grant unlimited spending rights.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 4: BLOCKAID SIGNALS ═══════════ -->
+<div class="page" id="page-blockaid">
+  <div class="sec-title">Blockaid Risk Signals — What to Monitor and Why</div>
+
+  <div class="risk-grid">
+    <div class="risk-card risk-card-red">
+      <h4 style="color:var(--risk-red)">🔴 High Risk Signals</h4>
+      <ul>
+        <li>Unlimited approval to unverified contract</li>
+        <li>setApprovalForAll to unknown address</li>
+        <li>eth_signTypedData with unknown verifyingContract</li>
+        <li>Newly deployed contract (&lt;24h old)</li>
+        <li>Simulation shows 100% asset drain</li>
+        <li>Known drainer contract address</li>
+        <li>Fake chain RPC (wallet_addEthereumChain)</li>
+        <li>transferFrom pulling all tokens</li>
+        <li>Permit signature with max uint256 value</li>
+      </ul>
+    </div>
+    <div class="risk-card risk-card-yellow">
+      <h4 style="color:var(--risk-yellow)">🟡 Medium Risk Signals</h4>
+      <ul>
+        <li>Approval to known protocol but unusual amount</li>
+        <li>Swap with very high slippage (&gt;10%)</li>
+        <li>Contract not verified on block explorer</li>
+        <li>Interaction with contract on different chain than expected</li>
+        <li>Unusual gas limit (too high)</li>
+        <li>Token not in known token list</li>
+        <li>Front-running / sandwich MEV exposure</li>
+        <li>Simulate shows unexpected token leaving wallet</li>
+      </ul>
+    </div>
+    <div class="risk-card risk-card-green">
+      <h4 style="color:var(--risk-green)">🟢 Low Risk / Benign</h4>
+      <ul>
+        <li>Transfer to known address with expected amount</li>
+        <li>Approve to Permit2 (known contract)</li>
+        <li>Swap on Uniswap/verified DEX within expected range</li>
+        <li>Read-only calls (eth_call, balanceOf)</li>
+        <li>WETH wrap/unwrap</li>
+        <li>Known NFT marketplace interaction</li>
+        <li>Safe multisig execTransaction with known signers</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="sec-title">The Simulation Pipeline</div>
+  <div class="cards-grid">
+    <div class="card">
+      <div class="card-head"><span class="card-icon">1️⃣</span><div><strong>Decode Calldata</strong><span>What function? What params?</span></div></div>
+      <p>Read function selector (first 4 bytes). ABI-decode parameters. Identify: token address, spender, amount, deadline. For complex txs (Uniswap execute) — recursively decode nested commands.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-icon">2️⃣</span><div><strong>Read World State</strong><span>Current ledger via eth_call</span></div></div>
+      <p>Query current balances and allowances. Check contract bytecode — is it verified? Is it new? Compare to known contract database (Uniswap, USDC, Safe addresses). Flag if unknown.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-icon">3️⃣</span><div><strong>Simulate Execution</strong><span>eth_call with state override</span></div></div>
+      <p>Run the transaction against current world state without broadcasting. Capture exact state changes: which balances increase/decrease, which approvals are set, which events are emitted.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-icon">4️⃣</span><div><strong>Score &amp; Return</strong><span>Risk label + decoded outcome</span></div></div>
+      <p>Combine: decoded intent + simulated outcome + contract reputation + known patterns → BENIGN / WARNING / MALICIOUS score. Return human-readable description: "This will transfer 100 USDC to 0x..."</p>
+    </div>
+  </div>
+
+  <div class="sec-title">Key Blockaid Concepts for SE Conversations</div>
+  <div class="cards-grid-3">
+    <div class="card">
+      <div class="card-head"><span class="card-icon">🧪</span><div><strong>Simulation vs. Validation</strong></div></div>
+      <p><strong>Simulation</strong> = running the tx and seeing what state changes result. <strong>Validation</strong> = checking if the tx follows rules (correct nonce, sufficient balance). Blockaid does both — simulation catches unknown attack patterns validation would miss.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-icon">📦</span><div><strong>Asset Exposure</strong></div></div>
+      <p>Total value at risk from all outstanding approvals. A user might have forgotten they approved Uniswap V2 for unlimited USDT 2 years ago — that approval is still live on-chain. Blockaid can surface and quantify this.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-icon">🔗</span><div><strong>Cross-chain Monitoring</strong></div></div>
+      <p>Each EVM chain has separate state. An approval on Ethereum doesn't exist on Base. Blockaid monitors each chain independently, using chain-specific RPC nodes and contract databases per ChainID.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-icon">🎭</span><div><strong>Contract Spoofing</strong></div></div>
+      <p>A malicious contract can have the same name/interface as USDC but be entirely different code. Blockaid checks the contract address — not the name. Only the address is the ground truth.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-icon">⏱</span><div><strong>Real-time vs. Batch</strong></div></div>
+      <p>Pre-confirmation scanning must return in &lt;500ms (user is waiting). Post-confirmation monitoring (watching mempool and blocks for threats) can be async. Blockaid operates at both layers.</p>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-icon">🔄</span><div><strong>Revoke vs. Reduce</strong></div></div>
+      <p>Revoking = setting allowance to 0. Reducing = lowering to exact needed amount. Both require on-chain transactions (gas). Blockaid can recommend revokes as part of a risk remediation flow.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 5: GLOSSARY ═══════════ -->
+<div class="page" id="page-glossary">
+  <div class="sec-title">SE Terminology Reference — Day-to-Day Client &amp; Prospect Conversations</div>
+
+  <div class="callout callout-blue" style="margin-bottom:24px">
+    <div class="callout-icon">💼</div>
+    <div class="callout-body">
+      <strong>How to use this glossary</strong>
+      <p>These are the terms clients and prospects will use when discussing security posture, integrations, and incident response. Understanding these at a technical level lets you speak credibly about what Blockaid does and where it fits in their stack.</p>
+    </div>
+  </div>
+
+  <div class="term-grid">
+    <div class="term-card">
+      <div class="term-name">EOA — Externally Owned Account</div>
+      <span class="term-tag" style="background:rgba(244,114,182,0.1);color:var(--dapp)">Wallet</span>
+      <div class="term-def">A standard wallet address controlled by a private key (MetaMask, Ledger). No code — can only initiate transactions. Contrast with smart contract accounts (Safe, ERC-4337).</div>
+      <div class="term-example">Client says: "We need to protect our users' EOA wallets from phishing"</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Smart Contract Account (SCA)</div>
+      <span class="term-tag" style="background:rgba(167,139,250,0.1);color:var(--chain)">Wallet</span>
+      <div class="term-def">A wallet that is itself a smart contract — like Safe multisig or ERC-4337 wallets. Has programmable rules: spending limits, multi-sig requirements, session keys, recovery mechanisms.</div>
+      <div class="term-example">Prospect says: "We use Safe for our treasury" — they need execTransaction monitoring</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Approval / Allowance</div>
+      <span class="term-tag" style="background:rgba(248,113,113,0.1);color:var(--risk-red)">ERC-20</span>
+      <div class="term-def">Permission granted by a token holder allowing another address (spender) to move their tokens. Lives in the token contract's allowance mapping. Persists until revoked.</div>
+      <div class="term-example">Client concern: "Users are approving unlimited amounts to our contracts — is that safe?"</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Permit2</div>
+      <span class="term-tag" style="background:rgba(167,139,250,0.1);color:var(--chain)">Uniswap</span>
+      <div class="term-def">Uniswap's universal approval contract. Users approve tokens once to Permit2 (0x0000...2BA3), then sign off-chain EIP-712 messages per transaction. Reduces on-chain approve calls.</div>
+      <div class="term-example">You spotted this in the swap exercise — the approve → sign → execute flow</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">MEV — Maximal Extractable Value</div>
+      <span class="term-tag" style="background:rgba(251,191,36,0.1);color:var(--risk-yellow)">Protocol</span>
+      <div class="term-def">Profit extracted by reordering, inserting, or censoring transactions. Includes front-running (inserting before your tx), sandwiching (wrapping your tx), and back-running. Sequencers capture MEV on L2.</div>
+      <div class="term-example">Prospect: "Can Blockaid detect sandwich attacks before they happen?"</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Front-running</div>
+      <span class="term-tag" style="background:rgba(248,113,113,0.1);color:var(--risk-red)">Attack</span>
+      <div class="term-def">Observing a pending transaction in the mempool and submitting your own transaction with higher gas to execute first, profiting from the known outcome of the pending tx.</div>
+      <div class="term-example">Common in DEX swaps — bot sees your large swap, buys first, sells after your tx moves the price</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Drainer Contract</div>
+      <span class="term-tag" style="background:rgba(248,113,113,0.1);color:var(--risk-red)">Attack</span>
+      <div class="term-def">A malicious smart contract disguised as a legitimate dApp. When you "approve" it or sign a Permit message for it, it immediately drains all tokens from your wallet.</div>
+      <div class="term-example">Phishing sites often prompt users to "claim NFT" which is actually approving a drainer</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Signature Phishing</div>
+      <span class="term-tag" style="background:rgba(248,113,113,0.1);color:var(--risk-red)">Attack</span>
+      <div class="term-def">Tricking a user into signing a message (eth_signTypedData or eth_sign) that authorizes a transfer or approval — without the user realizing. No on-chain tx needed from the attacker initially.</div>
+      <div class="term-example">Prospect: "Our users are getting drained after signing something on a Discord link"</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Gas Griefing</div>
+      <span class="term-tag" style="background:rgba(251,191,36,0.1);color:var(--risk-yellow)">Attack</span>
+      <div class="term-def">Causing a transaction to consume more gas than expected, potentially causing it to fail (out of gas) or costing the user significantly more than anticipated.</div>
+      <div class="term-example">Malicious contracts can loop or waste gas to drain ETH from the calling wallet</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Honeypot Token</div>
+      <span class="term-tag" style="background:rgba(248,113,113,0.1);color:var(--risk-red)">Attack</span>
+      <div class="term-def">A token where buy transactions succeed but sell transactions revert or are blocked. Contract code prevents selling. Users get trapped holding worthless tokens.</div>
+      <div class="term-example">Simulation reveals: the transfer() function has a blacklist that blocks all sells</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Rug Pull</div>
+      <span class="term-tag" style="background:rgba(248,113,113,0.1);color:var(--risk-red)">Attack</span>
+      <div class="term-def">Project founders drain liquidity or mint unlimited tokens suddenly, causing the token price to collapse. Contract has backdoor mint functions or ownership of liquidity pool.</div>
+      <div class="term-example">On-chain monitoring: detect sudden large liquidity removals or unexpected large mints</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">ABI — Application Binary Interface</div>
+      <span class="term-tag" style="background:rgba(79,142,247,0.1);color:var(--node)">Protocol</span>
+      <div class="term-def">The encoding standard for interacting with smart contracts — defines how function calls and responses are serialized into bytes. Required to decode calldata and event logs.</div>
+      <div class="term-example">Blockaid uses ABIs to decode what 0xa9059cbb0000... actually means in human terms</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Events / Logs</div>
+      <span class="term-tag" style="background:rgba(79,142,247,0.1);color:var(--node)">Protocol</span>
+      <div class="term-def">Permanent on-chain records emitted by contracts during execution. Have Topics (indexed, searchable) and Data (non-indexed). Source for all balance history, approval history, swap history.</div>
+      <div class="term-example">Transfer + Approval events are the primary data source for Blockaid's threat intelligence</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Mempool</div>
+      <span class="term-tag" style="background:rgba(79,142,247,0.1);color:var(--node)">Protocol</span>
+      <div class="term-def">The pending transaction pool — txs that have been broadcast but not yet included in a block. Public and visible to all nodes. Source of MEV and front-running.</div>
+      <div class="term-example">Prospect: "Can you monitor the mempool for transactions targeting our contracts?"</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Nonce</div>
+      <span class="term-tag" style="background:rgba(79,142,247,0.1);color:var(--node)">Protocol</span>
+      <div class="term-def">Transaction sequence counter per account. Prevents replay attacks. Must increment by 1 each tx. A stuck nonce (e.g., pending tx with low gas) blocks all subsequent transactions.</div>
+      <div class="term-example">Client issue: "User's transactions are stuck" — likely a pending tx with too-low gas at the same nonce</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">CCTP — Cross-Chain Transfer Protocol</div>
+      <span class="term-tag" style="background:rgba(167,139,250,0.1);color:var(--chain)">Bridge</span>
+      <div class="term-def">Circle's native USDC bridge — burns USDC on source chain, mints fresh native USDC on destination. Not a wrapped token. Supported across Ethereum, Base, Arbitrum, Polygon, etc.</div>
+      <div class="term-example">You used this in the exercise — Superbridge wraps CCTP for the user</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Sequencer</div>
+      <span class="term-tag" style="background:rgba(79,142,247,0.1);color:var(--node)">L2</span>
+      <div class="term-def">The centralized server on L2 chains that orders and batches transactions before posting them to L1. Controls MEV on L2. Run by the chain operator (Coinbase for Base, Offchain Labs for Arbitrum).</div>
+      <div class="term-example">Prospect: "We're deploying on Base — who controls transaction ordering?"</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">ERC-4337 — Account Abstraction</div>
+      <span class="term-tag" style="background:rgba(167,139,250,0.1);color:var(--chain)">Wallet</span>
+      <div class="term-def">A standard enabling smart contract wallets without protocol changes. Users submit UserOperations instead of transactions. Enables: gasless txs (paymasters), batched calls, social recovery, session keys.</div>
+      <div class="term-example">MetaMask Smart Account uses ERC-4337 — caused the $1.14 gas issue in your exercise</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Slippage</div>
+      <span class="term-tag" style="background:rgba(251,191,36,0.1);color:var(--risk-yellow)">DEX</span>
+      <div class="term-def">The difference between expected and actual swap price due to pool price movement during tx execution. High slippage tolerance makes you vulnerable to sandwich attacks. Low slippage can cause tx to revert.</div>
+      <div class="term-example">Uniswap shows "Price Impact" and lets you set max slippage tolerance</div>
+    </div>
+    <div class="term-card">
+      <div class="term-name">Token Decimals</div>
+      <span class="term-tag" style="background:rgba(79,142,247,0.1);color:var(--node)">ERC-20</span>
+      <div class="term-def">ERC-20 tokens store balances as integers. Decimals define the divisor. USDC/USDT = 6 decimals (1 USDC = 1,000,000). ETH/most tokens = 18 decimals (1 ETH = 10¹⁸ wei). Always check decimals when reading raw amounts.</div>
+      <div class="term-example">Raw value 978486 in USDC = 0.978 USDC (÷ 10⁶). In ETH = 0.000000000000978486 ETH (÷ 10¹⁸)</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PAGE 6: TARGET CUSTOMERS ═══════════ -->
+<div class="page" id="page-customers">
+  <div class="sec-title">Blockaid Target Customers — Pillars &amp; Real Examples</div>
+
+  <div class="callout callout-green" style="margin-bottom:28px">
+    <div class="callout-icon">🎯</div>
+    <div class="callout-body">
+      <strong>Blockaid protects every layer where users interact with blockchain</strong>
+      <p>From the wallet a user opens on their phone, to the DEX they swap on, to the dApp they connect to, to the chain they transact on — Blockaid's simulation and risk engine can be embedded at any point in the stack. Each customer type has different attack surfaces, integration patterns, and business drivers.</p>
+    </div>
+  </div>
+
+  <!-- PILLAR 1: WALLETS -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;">
+    <div style="background:rgba(251,146,60,0.08);border-bottom:1px solid rgba(251,146,60,0.2);padding:18px 24px;display:flex;align-items:center;gap:14px;">
+      <div style="font-size:28px;">🦊</div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--wallet);">Pillar 1 — Wallets (EOA &amp; Smart Account)</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">The last line of defense before a user confirms a transaction</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+        <span style="background:rgba(251,146,60,0.15);color:var(--wallet);border:1px solid rgba(251,146,60,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">MetaMask</span>
+        <span style="background:rgba(251,146,60,0.15);color:var(--wallet);border:1px solid rgba(251,146,60,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Rainbow</span>
+        <span style="background:rgba(251,146,60,0.15);color:var(--wallet);border:1px solid rgba(251,146,60,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Phantom</span>
+        <span style="background:rgba(251,146,60,0.15);color:var(--wallet);border:1px solid rgba(251,146,60,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Trust Wallet</span>
+        <span style="background:rgba(251,146,60,0.15);color:var(--wallet);border:1px solid rgba(251,146,60,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Coinbase Wallet</span>
+      </div>
+    </div>
+    <div style="padding:20px 24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">🔍 What Blockaid does</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>Intercepts every <code style="background:var(--bg);padding:1px 4px;border-radius:3px;font-size:10px;color:var(--json)">eth_sendTransaction</code> call</li>
+            <li>Scans <code style="background:var(--bg);padding:1px 4px;border-radius:3px;font-size:10px;color:var(--json)">eth_signTypedData</code> for malicious Permit2</li>
+            <li>Simulates tx outcome before popup appears</li>
+            <li>Labels transaction: BENIGN / WARNING / MALICIOUS</li>
+            <li>Shows human-readable "what will change"</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">⚠️ Attack vectors prevented</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>Drainer contracts (fake mint/claim sites)</li>
+            <li>Unlimited approval to malicious spender</li>
+            <li>Signature phishing (blind signing)</li>
+            <li>Fake token airdrop scams</li>
+            <li>Fake chain RPC injection</li>
+            <li>NFT setApprovalForAll abuse</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">💼 SE talking points</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>"Your users lose trust after a single drain event"</li>
+            <li>"Support costs spike after phishing waves"</li>
+            <li>"Blockaid SDK = &lt;500ms latency, invisible to user"</li>
+            <li>"Protects all chains your wallet supports"</li>
+            <li>"Differentiates your wallet vs competitors"</li>
+          </ul>
+        </div>
+      </div>
+      <div style="background:rgba(251,146,60,0.05);border:1px solid rgba(251,146,60,0.2);border-radius:8px;padding:12px 16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--wallet);margin-bottom:6px;">📌 Real scenario</div>
+        <div style="font-size:12px;color:var(--text-muted);">A MetaMask user visits a phishing site disguised as Uniswap. They click "Claim Rewards." The site sends <code style="background:var(--bg);padding:1px 4px;border-radius:3px;font-size:10px;color:var(--json)">eth_signTypedData</code> with a Permit2 message authorizing an unknown contract for unlimited USDC. Without Blockaid: user signs, tokens drained instantly. With Blockaid: the verifyingContract is unrecognized → MetaMask shows "⚠ Potential scam detected" before the user sees the signing popup.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILLAR 2: DEX -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;">
+    <div style="background:rgba(255,0,122,0.06);border-bottom:1px solid rgba(255,0,122,0.2);padding:18px 24px;display:flex;align-items:center;gap:14px;">
+      <div style="font-size:28px;">🔄</div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--dapp);">Pillar 2 — DEX (Decentralized Exchanges)</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Protecting swaps, liquidity pools, and routing from manipulation and malicious tokens</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+        <span style="background:rgba(255,0,122,0.1);color:var(--dapp);border:1px solid rgba(255,0,122,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Uniswap</span>
+        <span style="background:rgba(255,0,122,0.1);color:var(--dapp);border:1px solid rgba(255,0,122,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Curve</span>
+        <span style="background:rgba(255,0,122,0.1);color:var(--dapp);border:1px solid rgba(255,0,122,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">1inch</span>
+        <span style="background:rgba(255,0,122,0.1);color:var(--dapp);border:1px solid rgba(255,0,122,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">PancakeSwap</span>
+        <span style="background:rgba(255,0,122,0.1);color:var(--dapp);border:1px solid rgba(255,0,122,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Jupiter (Solana)</span>
+      </div>
+    </div>
+    <div style="padding:20px 24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">🔍 What Blockaid does</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>Detects honeypot tokens before swap completes</li>
+            <li>Identifies tokens with malicious transfer() hooks</li>
+            <li>Flags sandwich attack exposure pre-confirmation</li>
+            <li>Verifies token contracts are legitimate</li>
+            <li>Detects unusual approval patterns in routing</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">⚠️ Attack vectors prevented</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>Honeypot tokens (buy works, sell reverts)</li>
+            <li>Tokens with hidden fee-on-transfer logic</li>
+            <li>Sandwich MEV attacks</li>
+            <li>Fake token pairs mimicking real tokens</li>
+            <li>Rug pull liquidity removal detection</li>
+            <li>Flash loan price manipulation</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">💼 SE talking points</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>"Users blame the DEX when they buy a honeypot"</li>
+            <li>"Token screening = user protection + brand trust"</li>
+            <li>"Simulate every swap before routing"</li>
+            <li>"Flag tokens before they appear in your UI"</li>
+            <li>"Reduce support tickets from failed swaps"</li>
+          </ul>
+        </div>
+      </div>
+      <div style="background:rgba(255,0,122,0.04);border:1px solid rgba(255,0,122,0.2);border-radius:8px;padding:12px 16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--dapp);margin-bottom:6px;">📌 Real scenario — from your exercise</div>
+        <div style="font-size:12px;color:var(--text-muted);">You tried to swap FAI → USDT on Uniswap and Uniswap itself showed "Large price difference (100%)" — a basic DEX-level warning. Blockaid goes further: it simulates the actual swap execution, detects if the output token has a fee-on-transfer function that wasn't disclosed, or if the token contract contains a blacklist that will block the sell. On the USDC → FAI → USDC swaps, Blockaid would verify the FAI contract is legitimate, the pool addresses match known Uniswap deployments, and the Permit2 authorizations point to the real Universal Router.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILLAR 3: dAPPs -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;">
+    <div style="background:rgba(79,142,247,0.06);border-bottom:1px solid rgba(79,142,247,0.2);padding:18px 24px;display:flex;align-items:center;gap:14px;">
+      <div style="font-size:28px;">🌐</div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--node);">Pillar 3 — dApps (Decentralized Applications)</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">NFT marketplaces, DeFi protocols, GameFi, bridges — any Web3 frontend</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+        <span style="background:rgba(79,142,247,0.1);color:var(--node);border:1px solid rgba(79,142,247,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">OpenSea</span>
+        <span style="background:rgba(79,142,247,0.1);color:var(--node);border:1px solid rgba(79,142,247,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Blur</span>
+        <span style="background:rgba(79,142,247,0.1);color:var(--node);border:1px solid rgba(79,142,247,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Aave</span>
+        <span style="background:rgba(79,142,247,0.1);color:var(--node);border:1px solid rgba(79,142,247,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Compound</span>
+        <span style="background:rgba(79,142,247,0.1);color:var(--node);border:1px solid rgba(79,142,247,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Axie Infinity</span>
+      </div>
+    </div>
+    <div style="padding:20px 24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">🔍 What Blockaid does</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>Embeds in dApp frontend via JS SDK</li>
+            <li>Screens every tx before user sees popup</li>
+            <li>Detects spoofed dApp domains (typosquatting)</li>
+            <li>Validates NFT contract authenticity</li>
+            <li>Monitors all approval grants on the platform</li>
+            <li>Scans bridging transactions for fake destinations</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">⚠️ Attack vectors prevented</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>Phishing clones of the dApp itself</li>
+            <li>Malicious NFT listings (fake collections)</li>
+            <li>Fake Seaport / blur listings tricking bulk approvals</li>
+            <li>Bridge front-end hijacks</li>
+            <li>Malicious wallet_addEthereumChain requests</li>
+            <li>Supply chain attacks on dApp JS code</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">💼 SE talking points</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>"One phishing clone of your dApp can wipe out user trust"</li>
+            <li>"Embed SDK = protect users before they even interact"</li>
+            <li>"Insurance/compliance teams require tx monitoring"</li>
+            <li>"NFT platforms need fake collection detection at scale"</li>
+            <li>"Bridge protocols are highest-value attack targets"</li>
+          </ul>
+        </div>
+      </div>
+      <div style="background:rgba(79,142,247,0.04);border:1px solid rgba(79,142,247,0.2);border-radius:8px;padding:12px 16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--node);margin-bottom:6px;">📌 Real scenario</div>
+        <div style="font-size:12px;color:var(--text-muted);">OpenSea users were tricked into signing Seaport orders through phishing emails — the signature was valid on OpenSea's real contract but listed their NFTs for near-zero ETH. Blockaid embedded in OpenSea's frontend would decode the Seaport order signature, extract the listing price from the calldata, and flag "⚠ You are listing your Bored Ape for 0.0001 ETH — this may be a phishing attempt" before the user signs.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILLAR 4: CHAINS / ECOSYSTEMS -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;">
+    <div style="background:rgba(167,139,250,0.06);border-bottom:1px solid rgba(167,139,250,0.2);padding:18px 24px;display:flex;align-items:center;gap:14px;">
+      <div style="font-size:28px;">⛓️</div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--chain);">Pillar 4 — Chains &amp; Ecosystems (L1 / L2)</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Infrastructure-level protection — securing all activity on a network</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+        <span style="background:rgba(167,139,250,0.1);color:var(--chain);border:1px solid rgba(167,139,250,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Base</span>
+        <span style="background:rgba(167,139,250,0.1);color:var(--chain);border:1px solid rgba(167,139,250,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Polygon</span>
+        <span style="background:rgba(167,139,250,0.1);color:var(--chain);border:1px solid rgba(167,139,250,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">BNB Chain</span>
+        <span style="background:rgba(167,139,250,0.1);color:var(--chain);border:1px solid rgba(167,139,250,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Avalanche</span>
+        <span style="background:rgba(167,139,250,0.1);color:var(--chain);border:1px solid rgba(167,139,250,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Arbitrum</span>
+      </div>
+    </div>
+    <div style="padding:20px 24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">🔍 What Blockaid does</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>Chain-wide threat intelligence database</li>
+            <li>Maintains verified contract registry per ChainID</li>
+            <li>Monitors mempool for attack patterns at scale</li>
+            <li>Flags newly deployed malicious contracts</li>
+            <li>Provides APIs for block explorers (like Etherscan labels)</li>
+            <li>On-chain monitoring of protocol exploits</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">⚠️ Attack vectors prevented</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>Mass phishing campaigns targeting chain users</li>
+            <li>Ecosystem-wide drainer contract deployments</li>
+            <li>Bridge exploits (largest DeFi hacks historically)</li>
+            <li>Protocol rug pulls detected early</li>
+            <li>Fake token deployments mimicking native assets</li>
+            <li>Governance attack detection</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">💼 SE talking points</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>"Chain security = developer + user confidence"</li>
+            <li>"One large exploit tanks TVL and token price"</li>
+            <li>"Blockaid data enriches your block explorer"</li>
+            <li>"Chains compete on safety — Base, Polygon promote security"</li>
+            <li>"Ecosystem grants available for security integrations"</li>
+          </ul>
+        </div>
+      </div>
+      <div style="background:rgba(167,139,250,0.04);border:1px solid rgba(167,139,250,0.2);border-radius:8px;padding:12px 16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--chain);margin-bottom:6px;">📌 Real scenario</div>
+        <div style="font-size:12px;color:var(--text-muted);">The Ronin bridge hack (Axie Infinity, $625M) was the largest DeFi exploit ever. The attacker compromised validator keys and used them to approve fraudulent withdrawals. Blockaid at the chain level monitors for anomalous approval patterns — an address suddenly gaining authority over bridge contracts, or a series of large withdrawals from a bridge contract that deviate from historical patterns, would trigger an alert before the full drain completes.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PILLAR 5: ENTERPRISES / TREASURIES -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;">
+    <div style="background:rgba(52,211,153,0.06);border-bottom:1px solid rgba(52,211,153,0.2);padding:18px 24px;display:flex;align-items:center;gap:14px;">
+      <div style="font-size:28px;">🏦</div>
+      <div>
+        <div style="font-size:16px;font-weight:700;color:var(--blockaid);">Pillar 5 — Enterprises, DAOs &amp; Treasuries</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Institutional-grade protection for high-value wallets, multisigs, and on-chain operations</div>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;">
+        <span style="background:rgba(52,211,153,0.1);color:var(--blockaid);border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Safe Multisig</span>
+        <span style="background:rgba(52,211,153,0.1);color:var(--blockaid);border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">DAOs</span>
+        <span style="background:rgba(52,211,153,0.1);color:var(--blockaid);border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Crypto Exchanges</span>
+        <span style="background:rgba(52,211,153,0.1);color:var(--blockaid);border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">Custodians</span>
+        <span style="background:rgba(52,211,153,0.1);color:var(--blockaid);border:1px solid rgba(52,211,153,0.3);border-radius:10px;padding:2px 10px;font-size:10px;font-weight:700;">TradFi entering Web3</span>
+      </div>
+    </div>
+    <div style="padding:20px 24px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">🔍 What Blockaid does</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>Screens all transactions before Safe signers approve</li>
+            <li>Decodes execTransaction() nested calldata</li>
+            <li>Policy enforcement: block unauthorized destinations</li>
+            <li>Audit trail: every tx scanned and logged</li>
+            <li>Multi-chain treasury monitoring</li>
+            <li>Cosigning / transaction approval workflows</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">⚠️ Attack vectors prevented</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>Social engineering of multisig signers</li>
+            <li>Malicious tx disguised as routine operation</li>
+            <li>Insider threat — signer submits rogue tx</li>
+            <li>Compromised signer key used to drain treasury</li>
+            <li>Governance attacks (malicious proposals)</li>
+            <li>Bybit-style exchange wallet exploits</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;">
+          <div style="font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px;">💼 SE talking points</div>
+          <ul style="padding-left:14px;font-size:11px;color:var(--text-muted);">
+            <li>"Your Safe signers are targeted — verify every tx"</li>
+            <li>"Compliance requires tx screening and audit logs"</li>
+            <li>"Bybit lost $1.5B — same attack vector you face"</li>
+            <li>"Policy layer: whitelist destinations, block unknowns"</li>
+            <li>"Board-level risk reporting on treasury activity"</li>
+          </ul>
+        </div>
+      </div>
+      <div style="background:rgba(52,211,153,0.04);border:1px solid rgba(52,211,153,0.2);border-radius:8px;padding:12px 16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--blockaid);margin-bottom:6px;">📌 Real scenario — from your exercise</div>
+        <div style="font-size:12px;color:var(--text-muted);">Your Safe multisig (2/4 threshold) at <code style="background:var(--bg);padding:1px 4px;border-radius:3px;font-size:10px;color:var(--json)">0xa759...eE0</code> held funds that required 2 signers to move. In the Bybit hack ($1.5B, Feb 2025), attackers compromised the Safe UI itself — signers thought they were approving a routine transfer but the transaction had been swapped for one that upgraded the Safe contract to a malicious version. Blockaid screening the execTransaction() payload would have decoded the nested calldata, detected the contract upgrade pattern, and flagged it as anomalous before any signer approved it.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY MATRIX -->
+  <div class="sec-title" style="margin-top:32px">Customer Pillar Summary — Blockaid Value Matrix</div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:28px;">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background:var(--surface2);">
+          <th style="padding:12px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);border-bottom:1px solid var(--border2);border-right:1px solid var(--border);">Customer</th>
+          <th style="padding:12px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);border-bottom:1px solid var(--border2);border-right:1px solid var(--border);">Primary Integration</th>
+          <th style="padding:12px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);border-bottom:1px solid var(--border2);border-right:1px solid var(--border);">Key JSON-RPC Monitored</th>
+          <th style="padding:12px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);border-bottom:1px solid var(--border2);border-right:1px solid var(--border);">Biggest Risk</th>
+          <th style="padding:12px 16px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-dim);border-bottom:1px solid var(--border2);">Business Driver</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-weight:700;color:var(--wallet);">🦊 Wallets</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:12px;color:var(--text-muted);">SDK in wallet provider</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:11px;color:var(--json);font-family:monospace;">eth_sendTransaction<br>eth_signTypedData</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:12px;color:var(--text-muted);">Drainer contracts, signature phishing</td>
+          <td style="padding:12px 16px;font-size:12px;color:var(--text-muted);">User retention, brand trust</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:rgba(255,255,255,0.01);">
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-weight:700;color:var(--dapp);">🔄 DEXs</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:12px;color:var(--text-muted);">Token screening API</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:11px;color:var(--json);font-family:monospace;">eth_call (simulate swap)<br>eth_sendTransaction</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:12px;color:var(--text-muted);">Honeypot tokens, MEV sandwich</td>
+          <td style="padding:12px 16px;font-size:12px;color:var(--text-muted);">Protect routing quality, reduce complaints</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-weight:700;color:var(--node);">🌐 dApps</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:12px;color:var(--text-muted);">JS SDK in frontend</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:11px;color:var(--json);font-family:monospace;">eth_signTypedData<br>eth_sendTransaction</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:12px;color:var(--text-muted);">Phishing clones, fake NFT listings</td>
+          <td style="padding:12px 16px;font-size:12px;color:var(--text-muted);">User safety, regulatory compliance</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:rgba(255,255,255,0.01);">
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-weight:700;color:var(--chain);">⛓ Chains</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:12px;color:var(--text-muted);">Node-level / explorer API</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:11px;color:var(--json);font-family:monospace;">eth_getLogs<br>mempool monitoring</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:12px;color:var(--text-muted);">Bridge exploits, mass phishing campaigns</td>
+          <td style="padding:12px 16px;font-size:12px;color:var(--text-muted);">Ecosystem health, TVL protection</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-weight:700;color:var(--blockaid);">🏦 Enterprises</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:12px;color:var(--text-muted);">Safe / cosigner integration</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:11px;color:var(--json);font-family:monospace;">execTransaction()<br>eth_signTypedData</td>
+          <td style="padding:12px 16px;border-right:1px solid var(--border);font-size:12px;color:var(--text-muted);">Social engineering of signers, insider threat</td>
+          <td style="padding:12px 16px;font-size:12px;color:var(--text-muted);">Compliance, audit logs, treasury protection</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const idx = ['flow','jsonrpc','selectors','blockaid','glossary','customers'].indexOf(name);
+  document.querySelectorAll('.tab')[idx].classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+</div>
+</body>
+</html>
