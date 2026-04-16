@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SunSwap — Tron DeFi Exchange</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --red: #FF3B3B;
+    --red-dim: rgba(255,59,59,0.12);
+    --tron: #FF0013;
+    --tron-glow: rgba(255,0,19,0.25);
+    --bg: #0A0A0F;
+    --surface: #111118;
+    --surface2: #18181F;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --text: #F0F0F5;
+    --muted: #6B6B80;
+    --green: #00E87A;
+    --amber: #FFB800;
+  }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,0,19,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,0,19,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow orb */
+  body::after {
+    content: '';
+    position: fixed;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,0,19,0.06) 0%, transparent 70%);
+    top: -100px; left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px; height: 64px;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 18px; font-weight: 600; letter-spacing: -0.02em;
+  }
+
+  .logo-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--tron);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700;
+  }
+
+  .nav-links {
+    display: flex; gap: 28px; list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--muted); text-decoration: none;
+    font-size: 14px; font-weight: 500;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+
+  .nav-right { display: flex; align-items: center; gap: 12px; }
+
+  .btn-connect {
+    padding: 8px 18px;
+    background: var(--tron);
+    color: #fff; border: none;
+    border-radius: 8px; font-size: 14px;
+    font-weight: 600; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    transition: opacity 0.2s, transform 0.1s;
+    letter-spacing: 0.01em;
+  }
+
+  .btn-connect:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-connect:active { transform: scale(0.97); }
+
+  .network-badge {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+  }
+
+  .network-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-dot {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* MAIN */
+  main {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column;
+    align-items: center; padding: 48px 24px 80px;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    display: flex; gap: 32px;
+    margin-bottom: 40px;
+    padding: 14px 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 13px;
+  }
+
+  .stat { display: flex; align-items: center; gap: 8px; }
+  .stat-label { color: var(--muted); }
+  .stat-value { font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+  .stat-sep { color: var(--border2); }
+
+  /* SWAP CARD */
+  .swap-card {
+    width: 100%; max-width: 460px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .swap-tabs {
+    display: flex; border-bottom: 1px solid var(--border);
+  }
+
+  .swap-tab {
+    flex: 1; padding: 16px;
+    background: none; border: none;
+    color: var(--muted); font-size: 14px;
+    font-weight: 500; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    transition: all 0.2s;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+
+  .swap-tab.active {
+    color: var(--text);
+    border-bottom-color: var(--tron);
+  }
+
+  .swap-body { padding: 20px; }
+
+  .token-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 4px;
+    transition: border-color 0.2s;
+  }
+
+  .token-input:hover { border-color: var(--border2); }
+
+  .token-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .token-label { font-size: 12px; color: var(--muted); }
+  .token-balance { font-size: 12px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .token-balance span { color: var(--tron); cursor: pointer; }
+
+  .amount-row {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .amount-input {
+    background: none; border: none; outline: none;
+    font-size: 26px; font-weight: 500;
+    color: var(--text); font-family: 'Space Grotesk', sans-serif;
+    width: 180px;
+  }
+
+  .amount-input::placeholder { color: var(--muted); }
+
+  .token-selector {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .token-selector:hover { border-color: rgba(255,255,255,0.2); }
+
+  .token-icon {
+    width: 22px; height: 22px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+  }
+
+  .icon-usdt { background: #26A17B; color: #fff; }
+  .icon-trx { background: var(--tron); color: #fff; }
+  .icon-sun { background: #FFB800; color: #000; }
+
+  .token-name { font-size: 14px; font-weight: 600; }
+  .token-chevron { color: var(--muted); font-size: 12px; }
+
+  .usd-value {
+    font-size: 13px; color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 8px;
+  }
+
+  /* Arrow between inputs */
+  .swap-arrow-wrap {
+    display: flex; justify-content: center;
+    position: relative; margin: 4px 0;
+  }
+
+  .swap-arrow {
+    width: 36px; height: 36px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 16px;
+    transition: all 0.2s;
+    z-index: 1;
+  }
+
+  .swap-arrow:hover {
+    background: var(--surface);
+    border-color: rgba(255,255,255,0.2);
+    transform: rotate(180deg);
+  }
+
+  /* Rate info */
+  .rate-info {
+    display: flex; justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: 10px;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+
+  .rate-label { color: var(--muted); }
+  .rate-value { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+
+  /* CTA button */
+  .btn-swap {
+    width: 100%; padding: 16px;
+    background: var(--tron);
+    color: #fff; border: none;
+    border-radius: 14px;
+    font-size: 16px; font-weight: 600;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    letter-spacing: 0.01em;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+
+  .btn-swap:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-swap:active { transform: scale(0.98); }
+
+  /* MODAL OVERLAY */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+  }
+
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+
+  /* WALLET MODAL */
+  .wallet-modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 28px;
+    width: 380px;
+    transform: translateY(20px);
+    transition: transform 0.25s;
+  }
+
+  .modal-overlay.show .wallet-modal { transform: translateY(0); }
+
+  .modal-title {
+    font-size: 18px; font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .modal-sub {
+    font-size: 13px; color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .wallet-option {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: all 0.15s;
+  }
+
+  .wallet-option:hover {
+    border-color: var(--tron);
+    background: rgba(255,0,19,0.05);
+  }
+
+  .wallet-option-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+
+  .wallet-option-name { font-size: 15px; font-weight: 500; }
+  .wallet-option-sub { font-size: 12px; color: var(--muted); }
+  .wallet-option-arrow { margin-left: auto; color: var(--muted); }
+
+  .modal-cancel {
+    width: 100%; padding: 12px;
+    background: none; border: 1px solid var(--border2);
+    color: var(--muted); border-radius: 10px;
+    font-size: 14px; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    margin-top: 6px;
+    transition: all 0.15s;
+  }
+
+  .modal-cancel:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  /* TRANSACTION MODAL */
+  .tx-modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    width: 400px;
+    overflow: hidden;
+    transform: translateY(20px);
+    transition: transform 0.25s;
+  }
+
+  .modal-overlay.show .tx-modal { transform: translateY(0); }
+
+  .tx-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tx-title { font-size: 16px; font-weight: 600; margin-bottom: 2px; }
+  .tx-origin {
+    font-size: 12px; color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .tx-body { padding: 20px 24px; }
+
+  .tx-row {
+    display: flex; justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    font-size: 14px;
+  }
+
+  .tx-row-label { color: var(--muted); }
+  .tx-row-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500; text-align: right; max-width: 220px;
+    word-break: break-all;
+    font-size: 13px;
+  }
+
+  .tx-divider {
+    height: 1px; background: var(--border);
+    margin: 16px 0;
+  }
+
+  .tx-amount-block {
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .tx-amount-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+
+  .tx-amount {
+    font-size: 28px; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+  }
+
+  .tx-amount-usd { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  .tx-buttons {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; padding: 0 24px 24px;
+  }
+
+  .btn-reject {
+    padding: 14px;
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--text);
+    border-radius: 12px; font-size: 15px;
+    font-weight: 600; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .btn-reject:hover {
+    border-color: rgba(255,255,255,0.3);
+    background: var(--surface2);
+  }
+
+  .btn-approve {
+    padding: 14px;
+    background: var(--tron);
+    border: none; color: #fff;
+    border-radius: 12px; font-size: 15px;
+    font-weight: 600; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .btn-approve:hover { opacity: 0.85; }
+
+  /* BLOCKAID WARNING MODAL */
+  .warning-modal {
+    background: var(--surface);
+    border: 1.5px solid var(--red);
+    border-radius: 20px;
+    width: 400px;
+    overflow: hidden;
+    transform: translateY(20px);
+    transition: transform 0.25s;
+    box-shadow: 0 0 40px rgba(255,59,59,0.15);
+  }
+
+  .modal-overlay.show .warning-modal { transform: translateY(0); }
+
+  .warning-header {
+    background: var(--red-dim);
+    padding: 20px 24px;
+    display: flex; align-items: center; gap: 14px;
+    border-bottom: 1px solid rgba(255,59,59,0.2);
+  }
+
+  .warning-icon {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: rgba(255,59,59,0.15);
+    border: 1.5px solid var(--red);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+
+  .warning-title { font-size: 17px; font-weight: 600; color: #FF6B6B; }
+  .warning-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .warning-body { padding: 20px 24px; }
+
+  .warning-message {
+    font-size: 14px; line-height: 1.6; color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .warning-detail {
+    background: var(--surface2);
+    border: 1px solid rgba(255,59,59,0.2);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+
+  .warning-detail-row {
+    display: flex; justify-content: space-between;
+    font-size: 13px; margin-bottom: 8px;
+  }
+
+  .warning-detail-row:last-child { margin-bottom: 0; }
+  .wd-label { color: var(--muted); }
+  .wd-value { font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+  .wd-danger { color: #FF6B6B; }
+
+  .blockaid-badge {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+    background: rgba(255,59,59,0.06);
+    border: 1px solid rgba(255,59,59,0.15);
+    border-radius: 8px;
+    font-size: 12px; color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .blockaid-logo {
+    font-size: 11px; font-weight: 700;
+    color: var(--red); letter-spacing: 0.05em;
+  }
+
+  .warning-buttons {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 10px; padding: 0 24px 24px;
+  }
+
+  .btn-safe-reject {
+    padding: 14px;
+    background: var(--green);
+    border: none; color: #000;
+    border-radius: 12px; font-size: 15px;
+    font-weight: 600; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .btn-safe-reject:hover { opacity: 0.88; }
+
+  .btn-ignore {
+    padding: 14px;
+    background: none;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    border-radius: 12px; font-size: 13px;
+    font-weight: 500; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .btn-ignore:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+  /* DEMO CONTROLS */
+  .demo-controls {
+    position: fixed; bottom: 24px; right: 24px; z-index: 300;
+    display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+  }
+
+  .demo-btn {
+    padding: 9px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    color: var(--muted); border-radius: 8px;
+    font-size: 12px; font-weight: 500;
+    cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+    transition: all 0.15s; white-space: nowrap;
+  }
+
+  .demo-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
+  .demo-btn.primary { background: var(--tron); color: #fff; border-color: var(--tron); }
+
+  .demo-label {
+    font-size: 10px; color: var(--muted);
+    text-align: right; letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* CONNECTED STATE */
+  .wallet-connected {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+  }
+
+  .addr { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 80px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 10px; padding: 12px 20px;
+    font-size: 13px; font-weight: 500;
+    z-index: 400; opacity: 0;
+    transition: all 0.3s; white-space: nowrap;
+  }
+
+  .toast.green { border-color: var(--green); color: var(--green); }
+  .toast.red { border-color: var(--red); color: #FF6B6B; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-icon">S</div>
+    SunSwap
+  </div>
+  <ul class="nav-links">
+    <li><a href="#" class="active">Swap</a></li>
+    <li><a href="#">Liquidity</a></li>
+    <li><a href="#">Earn</a></li>
+    <li><a href="#">Analytics</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="network-badge">
+      <div class="network-dot"></div>
+      Tron Mainnet
+    </div>
+    <button class="btn-connect" id="connectBtn" onclick="openWalletModal()">Connect Wallet</button>
+    <div class="wallet-connected" id="connectedState" style="display:none;">
+      <div class="network-dot"></div>
+      <span class="addr" id="addrDisplay">TQn9Y2...kHt8X</span>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main>
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat">
+      <span class="stat-label">24h Volume</span>
+      <span class="stat-value">$284.7M</span>
+    </div>
+    <span class="stat-sep">·</span>
+    <div class="stat">
+      <span class="stat-label">TVL</span>
+      <span class="stat-value">$1.84B</span>
+    </div>
+    <span class="stat-sep">·</span>
+    <div class="stat">
+      <span class="stat-label">TRX Price</span>
+      <span class="stat-value">$0.2341</span>
+    </div>
+    <span class="stat-sep">·</span>
+    <div class="stat">
+      <span class="stat-label">Transactions</span>
+      <span class="stat-value">2.4M today</span>
+    </div>
+  </div>
+
+  <!-- Swap Card -->
+  <div class="swap-card">
+    <div class="swap-tabs">
+      <button class="swap-tab active">Swap</button>
+      <button class="swap-tab">Limit</button>
+      <button class="swap-tab">TWAP</button>
+    </div>
+    <div class="swap-body">
+
+      <!-- From -->
+      <div class="token-input">
+        <div class="token-row">
+          <span class="token-label">You pay</span>
+          <span class="token-balance">Balance: <span onclick="setMax()">1,240.00</span> USDT</span>
+        </div>
+        <div class="amount-row">
+          <input class="amount-input" type="text" placeholder="0.0" value="1,240" id="fromAmount">
+          <div class="token-selector">
+            <div class="token-icon icon-usdt">₮</div>
+            <span class="token-name">USDT</span>
+            <span class="token-chevron">▾</span>
+          </div>
+        </div>
+        <div class="usd-value">≈ $1,240.00</div>
+      </div>
+
+      <!-- Arrow -->
+      <div class="swap-arrow-wrap">
+        <div class="swap-arrow">⇅</div>
+      </div>
+
+      <!-- To -->
+      <div class="token-input">
+        <div class="token-row">
+          <span class="token-label">You receive</span>
+          <span class="token-balance">Balance: 420.55 TRX</span>
+        </div>
+        <div class="amount-row">
+          <input class="amount-input" type="text" placeholder="0.0" value="5,297.3" readonly>
+          <div class="token-selector">
+            <div class="token-icon icon-trx">T</div>
+            <span class="token-name">TRX</span>
+            <span class="token-chevron">▾</span>
+          </div>
+        </div>
+        <div class="usd-value">≈ $1,238.89</div>
+      </div>
+
+      <!-- Rate -->
+      <div class="rate-info">
+        <span class="rate-label">Rate</span>
+        <span class="rate-value">1 USDT = 4.272 TRX</span>
+      </div>
+
+      <!-- CTA -->
+      <button class="btn-swap" id="swapBtn" onclick="handleSwap()">
+        Connect wallet to swap
+      </button>
+
+    </div>
+  </div>
+</main>
+
+<!-- ============ WALLET MODAL ============ -->
+<div class="modal-overlay" id="walletModal">
+  <div class="wallet-modal">
+    <div class="modal-title">Connect a wallet</div>
+    <div class="modal-sub">Choose your preferred Tron wallet to continue</div>
+
+    <div class="wallet-option" onclick="connectWallet('TronLink')">
+      <div class="wallet-option-icon" style="background:#FF0013;">🔴</div>
+      <div>
+        <div class="wallet-option-name">TronLink</div>
+        <div class="wallet-option-sub">Official Tron wallet</div>
+      </div>
+      <span class="wallet-option-arrow">→</span>
+    </div>
+
+    <div class="wallet-option" onclick="connectWallet('Trust Wallet')">
+      <div class="wallet-option-icon" style="background:#3375BB;">🔵</div>
+      <div>
+        <div class="wallet-option-name">Trust Wallet</div>
+        <div class="wallet-option-sub">Multi-chain wallet</div>
+      </div>
+      <span class="wallet-option-arrow">→</span>
+    </div>
+
+    <div class="wallet-option" onclick="connectWallet('TokenPocket')">
+      <div class="wallet-option-icon" style="background:#2980FE;">💙</div>
+      <div>
+        <div class="wallet-option-name">TokenPocket</div>
+        <div class="wallet-option-sub">Popular in Asia</div>
+      </div>
+      <span class="wallet-option-arrow">→</span>
+    </div>
+
+    <button class="modal-cancel" onclick="closeAll()">Cancel</button>
+  </div>
+</div>
+
+<!-- ============ TX MODAL (no Blockaid) ============ -->
+<div class="modal-overlay" id="txModal">
+  <div class="tx-modal">
+    <div class="tx-header">
+      <div class="tx-title">Confirm Transaction</div>
+      <div class="tx-origin">sunswap-pro.finance · TronLink</div>
+    </div>
+    <div class="tx-body">
+      <div class="tx-amount-block">
+        <div class="tx-amount-label">Amount to transfer</div>
+        <div class="tx-amount">1,240 USDT</div>
+        <div class="tx-amount-usd">≈ $1,240.00 · Your full balance</div>
+      </div>
+
+      <div class="tx-row">
+        <span class="tx-row-label">Method</span>
+        <span class="tx-row-value">TriggerSmartContract</span>
+      </div>
+      <div class="tx-row">
+        <span class="tx-row-label">Contract</span>
+        <span class="tx-row-value" style="font-size:11px;">TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t</span>
+      </div>
+      <div class="tx-row">
+        <span class="tx-row-label">Recipient</span>
+        <span class="tx-row-value" style="font-size:11px;">TDrainer9xKp2...Af7Zq</span>
+      </div>
+      <div class="tx-divider"></div>
+      <div class="tx-row">
+        <span class="tx-row-label">Network fee</span>
+        <span class="tx-row-value">0 TRX (gasless)</span>
+      </div>
+    </div>
+    <div class="tx-buttons">
+      <button class="btn-reject" onclick="rejectTx()">Reject</button>
+      <button class="btn-approve" onclick="approveTx()">Approve</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ BLOCKAID WARNING MODAL ============ -->
+<div class="modal-overlay" id="warningModal">
+  <div class="warning-modal">
+    <div class="warning-header">
+      <div class="warning-icon">⚠️</div>
+      <div>
+        <div class="warning-title">Malicious Transaction Detected</div>
+        <div class="warning-subtitle">sunswap-pro.finance · TronLink</div>
+      </div>
+    </div>
+    <div class="warning-body">
+      <div class="warning-message">
+        This transaction will drain your entire wallet. The site is impersonating SunSwap — it is a known phishing page.
+      </div>
+
+      <div class="warning-detail">
+        <div class="warning-detail-row">
+          <span class="wd-label">Risk level</span>
+          <span class="wd-value wd-danger">● Critical</span>
+        </div>
+        <div class="warning-detail-row">
+          <span class="wd-label">Attack type</span>
+          <span class="wd-value">TriggerSmartContract drain</span>
+        </div>
+        <div class="warning-detail-row">
+          <span class="wd-label">Assets at risk</span>
+          <span class="wd-value wd-danger">1,240 USDT ($1,240)</span>
+        </div>
+        <div class="warning-detail-row">
+          <span class="wd-label">Drainer family</span>
+          <span class="wd-value">Sector Drainer</span>
+        </div>
+      </div>
+
+      <div class="blockaid-badge">
+        <span class="blockaid-logo">BLOCKAID</span>
+        <span>Security alert · Real-time transaction simulation</span>
+      </div>
+    </div>
+    <div class="warning-buttons">
+      <button class="btn-safe-reject" onclick="safeReject()">✓ Reject & Stay Safe</button>
+      <button class="btn-ignore" onclick="ignoreWarning()">Ignore warning</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- DEMO CONTROLS -->
+<div class="demo-controls">
+  <div class="demo-label">Demo controls</div>
+  <button class="demo-btn" onclick="reset()">↺ Reset</button>
+  <button class="demo-btn" id="toggleBlockaid" onclick="toggleBlockaid()">🛡 Blockaid: ON</button>
+  <button class="demo-btn primary" onclick="openWalletModal()">▶ Start Demo</button>
+</div>
+
+<script>
+  let connected = false;
+  let blockaidEnabled = true;
+  let walletName = '';
+
+  function openWalletModal() {
+    document.getElementById('walletModal').classList.add('show');
+  }
+
+  function closeAll() {
+    ['walletModal','txModal','warningModal'].forEach(id => {
+      document.getElementById(id).classList.remove('show');
+    });
+  }
+
+  function connectWallet(name) {
+    walletName = name;
+    closeAll();
+    connected = true;
+
+    // Update nav
+    document.getElementById('connectBtn').style.display = 'none';
+    document.getElementById('connectedState').style.display = 'flex';
+    document.getElementById('addrDisplay').textContent = 'TQn9Y2...kHt8X';
+
+    // Update swap button
+    document.getElementById('swapBtn').textContent = 'Swap USDT → TRX';
+
+    showToast(`${name} connected`, 'green');
+  }
+
+  function handleSwap() {
+    if (!connected) { openWalletModal(); return; }
+    // Show tx modal — with or without Blockaid warning
+    if (blockaidEnabled) {
+      // Brief delay to simulate scan
+      document.getElementById('txModal').classList.add('show');
+      setTimeout(() => {
+        document.getElementById('txModal').classList.remove('show');
+        document.getElementById('warningModal').classList.add('show');
+      }, 900);
+    } else {
+      document.getElementById('txModal').classList.add('show');
+    }
+  }
+
+  function rejectTx() {
+    closeAll();
+    showToast('Transaction rejected', 'green');
+  }
+
+  function approveTx() {
+    closeAll();
+    showToast('⚠ Transaction signed — wallet drained', 'red');
+    document.getElementById('swapBtn').textContent = 'Wallet drained';
+    document.getElementById('swapBtn').style.background = '#333';
+    document.getElementById('swapBtn').disabled = true;
+  }
+
+  function safeReject() {
+    closeAll();
+    showToast('✓ Protected — wallet safe', 'green');
+  }
+
+  function ignoreWarning() {
+    closeAll();
+    document.getElementById('txModal').classList.add('show');
+  }
+
+  function toggleBlockaid() {
+    blockaidEnabled = !blockaidEnabled;
+    const btn = document.getElementById('toggleBlockaid');
+    btn.textContent = blockaidEnabled ? '🛡 Blockaid: ON' : '🚫 Blockaid: OFF';
+    btn.style.color = blockaidEnabled ? '' : '#FF6B6B';
+    showToast(blockaidEnabled ? 'Blockaid protection enabled' : 'Blockaid disabled — user exposed', blockaidEnabled ? 'green' : 'red');
+  }
+
+  function reset() {
+    closeAll();
+    connected = false;
+    blockaidEnabled = true;
+    document.getElementById('connectBtn').style.display = '';
+    document.getElementById('connectedState').style.display = 'none';
+    document.getElementById('swapBtn').textContent = 'Connect wallet to swap';
+    document.getElementById('swapBtn').style.background = '';
+    document.getElementById('swapBtn').disabled = false;
+    document.getElementById('toggleBlockaid').textContent = '🛡 Blockaid: ON';
+    document.getElementById('toggleBlockaid').style.color = '';
+  }
+
+  function setMax() {
+    document.getElementById('fromAmount').value = '1,240';
+  }
+
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.className = 'toast', 2800);
+  }
+</script>
+</body>
+</html>
