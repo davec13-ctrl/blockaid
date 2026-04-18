@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wallet Signing Paths — Reference Notes</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --text: #1a1a1a;
+    --muted: #5a5a5a;
+    --accent: #0b5fff;
+    --danger: #c8102e;
+    --safe: #0a7d36;
+    --border: #e4e4e4;
+    --code-bg: #f6f8fa;
+    --code-text: #24292f;
+    --block-bg: #fafbfc;
+    --highlight: #fff3bf;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.65;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    color: var(--text);
+    background: var(--bg);
+    font-size: 16px;
+  }
+  h1 {
+    font-size: 2em;
+    margin: 0 0 8px;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 1.05em;
+    margin-bottom: 40px;
+  }
+  h2 {
+    font-size: 1.5em;
+    margin: 48px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-size: 1.15em;
+    margin: 28px 0 12px;
+    color: var(--text);
+  }
+  p { margin: 12px 0; }
+  code {
+    font-family: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, monospace;
+    background: var(--code-bg);
+    color: var(--code-text);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+  pre {
+    background: var(--block-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    font-size: 0.85em;
+    line-height: 1.5;
+    margin: 16px 0;
+  }
+  pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+  .comment { color: #6a737d; }
+  .keyword { color: #d73a49; }
+  .string { color: #032f62; }
+  .number { color: #005cc5; }
+  .highlight { background: var(--highlight); padding: 1px 3px; border-radius: 2px; }
+
+  .callout {
+    border-left: 4px solid var(--accent);
+    background: #f0f6ff;
+    padding: 14px 18px;
+    margin: 20px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout.danger {
+    border-left-color: var(--danger);
+    background: #fff1f2;
+  }
+  .callout.safe {
+    border-left-color: var(--safe);
+    background: #ecf9f1;
+  }
+  .callout-title {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 20px 0;
+    font-size: 0.95em;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--block-bg);
+    font-weight: 600;
+  }
+  tr td:first-child {
+    font-weight: 600;
+    background: var(--block-bg);
+  }
+  td.path-a { color: var(--danger); }
+  td.path-b { color: var(--safe); }
+
+  ol, ul { padding-left: 24px; }
+  ol li, ul li { margin: 8px 0; }
+
+  .step-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    font-size: 0.75em;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-right: 8px;
+    vertical-align: middle;
+    letter-spacing: 0.03em;
+  }
+  .step-badge.danger { background: var(--danger); }
+  .step-badge.safe { background: var(--safe); }
+
+  .rpc {
+    font-family: "SF Mono", Monaco, Consolas, monospace;
+    background: #eef2ff;
+    color: #1e3a8a;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: 500;
+  }
+
+  .tldr {
+    background: #fffbea;
+    border: 1px solid #f5d76e;
+    padding: 16px 20px;
+    border-radius: 6px;
+    margin: 20px 0;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  .footer {
+    color: var(--muted);
+    font-size: 0.85em;
+    text-align: center;
+    margin-top: 60px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<h1>Wallet Signing Paths</h1>
+<p class="subtitle">Reference notes — how dApp signature requests and EOA transactions differ at the RPC level, and where Blockaid fits in each.</p>
+
+<div class="tldr">
+  <strong>TL;DR.</strong> Wallets expose two fundamentally different signing paths. Drainers exploit <em>Path A</em> because it produces no on-chain activity for the victim and no gas popup. Direct transfers use <em>Path B</em>, which does go on-chain. Blockaid inserts a scan step before the wallet renders its confirmation popup on both paths — decoding the opaque payload into plain-English economic effect.
+</div>
+
+<h2>Path A — dApp Signature Flow <span style="color: var(--danger); font-size: 0.7em; font-weight: normal;">(permit / drainer pattern)</span></h2>
+
+<p>The victim's wallet only sees two RPC calls. <strong>Neither produces any on-chain activity on the victim's side.</strong></p>
+
+<h3><span class="step-badge danger">RPC 1</span><span class="rpc">eth_requestAccounts</span></h3>
+<ul>
+  <li>Triggered when the user clicks <strong>Connect Wallet</strong>.</li>
+  <li>Returns the victim's address to the dApp.</li>
+  <li>No gas, no transaction, no blockchain footprint.</li>
+</ul>
+
+<h3><span class="step-badge danger">RPC 2</span><span class="rpc">eth_signTypedData_v4</span></h3>
+<ul>
+  <li>Triggered by the site <em>right after</em> it has done recon on the victim's holdings.</li>
+  <li>Presents an EIP-712 typed-data payload (e.g. an ERC-2612 permit) for the user to sign.</li>
+  <li>Returns an ECDSA signature <code>(v, r, s)</code>.</li>
+  <li>Still no gas, no transaction, no blockchain footprint on the victim's side.</li>
+</ul>
+
+<div class="callout danger">
+  <div class="callout-title">Why this is the dangerous path</div>
+  The attacker then uses that signature <em>later</em>, from their own wallet, paying their own gas, to execute <code>permit()</code> and <code>transferFrom()</code> on-chain. The victim never sees an <code>eth_sendTransaction</code>. No gas popup, no "Confirm transaction" screen, no pending tx in the activity tab — just a "Signature request" that users associate with benign wallet logins.
+</div>
+
+<hr>
+
+<h2>Path B — EOA Transaction Flow <span style="color: var(--safe); font-size: 0.7em; font-weight: normal;">(direct transfer)</span></h2>
+
+<p>When Alice sends 500 USDT to Bob via MetaMask's native Send UI — no dApp involved — the wallet builds and broadcasts the transaction itself.</p>
+
+<h3><span class="step-badge safe">STEP 1</span>MetaMask constructs the raw transaction object locally</h3>
+
+<pre><code>{
+  from:     <span class="string">"0xALICE..."</span>,
+  to:       <span class="string">"0xdAC17F958D2ee523a2206206994597C13D831ec7"</span>,  <span class="comment">// USDT contract</span>
+  value:    <span class="string">"0x0"</span>,                                          <span class="comment">// no ETH being sent</span>
+  data:     <span class="string">"0xa9059cbb000000000000000000000000BOB00000...00000000000000000000001DCD6500"</span>,
+  <span class="comment">//         ^^^^^^^^                                                        ^^^^^^^^</span>
+  <span class="comment">//         transfer(address,uint256) selector            amount: 500 USDT = 500_000_000 (6 decimals)</span>
+  nonce:    <span class="string">"0x2A"</span>,        <span class="comment">// Alice's 42nd tx</span>
+  gasLimit: <span class="string">"0xEA60"</span>,      <span class="comment">// ~60,000</span>
+  maxFeePerGas:         <span class="string">"0x59682F00"</span>,
+  maxPriorityFeePerGas: <span class="string">"0x77359400"</span>,
+  chainId:  <span class="string">"0x1"</span>          <span class="comment">// Ethereum mainnet</span>
+}</code></pre>
+
+<h3><span class="step-badge safe">STEP 2</span>MetaMask signs and RLP-encodes the transaction</h3>
+
+<pre><code>raw_signed_tx = <span class="keyword">rlp_encode</span>(
+  nonce, gasPrice, gasLimit, to, value, data,
+  v, r, s
+)
+<span class="comment">// = 0xf86d2a843b9aca0082ea6094dac17f958d2ee523a2206206994597c13d831ec780b844a9059cbb...</span></code></pre>
+
+<h3><span class="step-badge safe">STEP 3</span>MetaMask broadcasts via <span class="rpc">eth_sendRawTransaction</span></h3>
+<p>
+  The signed transaction hits the mempool, gets picked up by a validator, executed on-chain, and finalized.
+  Alice sees <code>-500 USDT</code>, Bob sees <code>+500 USDT</code>. Total time ~12–15 seconds.
+</p>
+
+<div class="callout safe">
+  <div class="callout-title">Where transaction simulation and validation fit</div>
+  Before MetaMask shows Alice the confirmation popup (between Step 1 and the user clicking <em>Confirm</em>), this is the window where Blockaid's Transaction Scan API can simulate the transaction — trace its state changes, decode the calldata, flag unusual approvals or drains — and return a human-readable verdict the wallet renders in place of the opaque hex <code>data</code> field.
+</div>
+
+<hr>
+
+<h2>Key Contrast</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th style="width: 28%;"></th>
+      <th style="width: 36%;">Path A — dApp Signature</th>
+      <th style="width: 36%;">Path B — EOA Transaction</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>RPC method</td>
+      <td class="path-a"><span class="rpc">eth_signTypedData_v4</span></td>
+      <td class="path-b"><span class="rpc">eth_sendTransaction</span> / <span class="rpc">eth_sendRawTransaction</span></td>
+    </tr>
+    <tr>
+      <td>Gas paid by victim?</td>
+      <td class="path-a">No</td>
+      <td class="path-b">Yes</td>
+    </tr>
+    <tr>
+      <td>On-chain activity from victim?</td>
+      <td class="path-a">No</td>
+      <td class="path-b">Yes</td>
+    </tr>
+    <tr>
+      <td>Wallet UI label</td>
+      <td class="path-a">"Signature request"</td>
+      <td class="path-b">"Confirm transaction"</td>
+    </tr>
+    <tr>
+      <td>Where Blockaid inserts</td>
+      <td>Between the site's <code>eth_signTypedData_v4</code> call and the wallet popup — scans the typed data, decodes the economic effect</td>
+      <td>Between the <code>eth_sendTransaction</code> call and the wallet popup — simulates the transaction, decodes calldata</td>
+    </tr>
+    <tr>
+      <td>What Blockaid decodes into plain English</td>
+      <td class="path-a">"This permit will drain your entire USDT balance to an unknown address"</td>
+      <td class="path-b">"You will send 500 USDT to 0xBOB..."</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <div class="callout-title">The unifying insight</div>
+  Both paths route through the same choke point for Blockaid: the wallet queries the Scan API <strong>before</strong> showing the user a popup, and renders the decoded verdict in place of (or alongside) the raw payload. The value is readability — Blockaid turns opaque typed data and hex calldata into "here's what will actually happen to your money," in both directions: flagging drains on malicious transactions, and giving confidence-inspiring clarity on legitimate ones.
+</div>
+
+<div class="footer">
+  Wallet Signing Paths — Reference notes · Blockaid demo prep
+</div>
+
+</body>
+</html>
