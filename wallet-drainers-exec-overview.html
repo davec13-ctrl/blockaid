@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wallet Drainers — Executive Overview</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #14171c;
+    --panel-2: #1a1e25;
+    --border: #262b33;
+    --text: #e7eaee;
+    --muted: #9aa3ad;
+    --accent: #6ee7b7;
+    --accent-2: #60a5fa;
+    --danger: #f87171;
+    --warn: #fbbf24;
+    --ok: #34d399;
+    --chip-bg: #1f2630;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 56px 28px 96px;
+  }
+  header.hero {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 36px;
+    margin-bottom: 48px;
+  }
+  .eyebrow {
+    color: var(--accent);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: 44px;
+    line-height: 1.1;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+  .lede {
+    color: var(--muted);
+    font-size: 18px;
+    max-width: 760px;
+    margin: 0;
+  }
+  h2 {
+    font-size: 24px;
+    letter-spacing: -0.01em;
+    margin: 56px 0 20px;
+    font-weight: 600;
+  }
+  h3 {
+    font-size: 17px;
+    margin: 0 0 8px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  p { margin: 0 0 14px; }
+  .muted { color: var(--muted); }
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 28px;
+  }
+  .kpi {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 18px;
+  }
+  .kpi .n {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .kpi .n .unit { color: var(--accent); }
+  .kpi .l {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.35;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 22px 20px;
+  }
+  .card.attack {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+  }
+  .card.attack .tag-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 14px;
+  }
+  .chip {
+    display: inline-block;
+    background: var(--chip-bg);
+    color: var(--muted);
+    font-size: 11px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.01em;
+    border: 1px solid var(--border);
+  }
+  .chip.sev-high { color: #fca5a5; border-color: #3f1d1d; background: #2a1416; }
+  .chip.sev-med { color: var(--warn); border-color: #3a2e12; background: #241e0f; }
+  .chip.sev-low { color: var(--accent); border-color: #13352a; background: #0f2821; }
+  .idx {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .card p { font-size: 14.5px; color: #c9d0d8; }
+  .card .sig {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 10px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+  }
+  .card .sig strong { color: var(--text); font-weight: 600; }
+  .pillars {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .pillar {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+  }
+  .pillar h3 { color: var(--accent-2); }
+  ul.tight {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    color: #c9d0d8;
+    font-size: 14.5px;
+  }
+  ul.tight li { margin-bottom: 6px; }
+  .callout {
+    background: linear-gradient(180deg, rgba(110,231,183,0.06), rgba(96,165,250,0.05));
+    border: 1px solid #1f3a36;
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-top: 24px;
+  }
+  .callout h3 { color: var(--accent); margin-bottom: 6px; }
+  .callout p { color: #c9d0d8; font-size: 14.5px; margin: 0; }
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .flow .step {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 12px;
+    position: relative;
+  }
+  .flow .step .n {
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .flow .step .t {
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .flow .step .d {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  footer {
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .legend {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .legend .chip { cursor: default; }
+  @media (max-width: 900px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .grid-2, .pillars { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr; }
+    .flow { grid-template-columns: 1fr 1fr; }
+    h1 { font-size: 34px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Executive Overview</div>
+    <h1>Wallet Drainers: The Modern Threat to Signing Surfaces</h1>
+    <p class="lede">
+      As protocol-layer exploits have become harder, attackers have shifted to the softest remaining surface: end users. Wallet drainers trick users into signing transactions or messages they don't understand — turning a single signature into a full wallet drain. This is a short overview of how the threat works and how Blockaid detects it.
+    </p>
+
+    <div class="kpis">
+      <div class="kpi">
+        <div class="n">~10<span class="unit">%</span></div>
+        <div class="l">of dApps observed across Blockaid's integrations are malicious</div>
+      </div>
+      <div class="kpi">
+        <div class="n">6</div>
+        <div class="l">primary drainer transaction categories in active rotation</div>
+      </div>
+      <div class="kpi">
+        <div class="n">Weekly</div>
+        <div class="l">cadence of new bypass methods &amp; SDK variants observed</div>
+      </div>
+      <div class="kpi">
+        <div class="n">2</div>
+        <div class="l">reinforcing detection layers: transaction scanning + dApp scanning</div>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <h2>How Drainers Reach Users</h2>
+    <p class="muted">Drainers are a product category with real engineering investment. Operators don't write malicious code — they buy it, then focus on distribution.</p>
+
+    <div class="flow">
+      <div class="step">
+        <div class="n">01</div>
+        <div class="t">Kit Purchase</div>
+        <div class="d">Operator buys a drainer SDK — JavaScript components that generate malicious transactions.</div>
+      </div>
+      <div class="step">
+        <div class="n">02</div>
+        <div class="t">Brand Impersonation</div>
+        <div class="d">Clone of a known dApp, often with convincing copy and verified-looking contracts.</div>
+      </div>
+      <div class="step">
+        <div class="n">03</div>
+        <div class="t">Distribution</div>
+        <div class="d">Paid ads on search &amp; social, phishing email, DMs, and compromised community channels.</div>
+      </div>
+      <div class="step">
+        <div class="n">04</div>
+        <div class="t">Signature Capture</div>
+        <div class="d">User lands, connects wallet, and is prompted to sign a drainer-crafted tx or message.</div>
+      </div>
+      <div class="step">
+        <div class="n">05</div>
+        <div class="t">Drain</div>
+        <div class="d">Funds are swept — immediately on transfer drains, later on approvals and permits.</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h3>The SDK economy changes how we defend</h3>
+      <p>Because the same kits are reused across hundreds of sites, static fingerprints of their JavaScript and network behavior let us flag new malicious dApps before a single user signs. Drainer kits also advertise "Blockaid bypass" claims in their sales channels — a signal we actively monitor.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>The Six Drainer Categories</h2>
+    <div class="legend">
+      <span>Severity:</span>
+      <span class="chip sev-high">High — immediate drain</span>
+      <span class="chip sev-med">Medium — delayed drain</span>
+      <span class="chip sev-low">Context-dependent</span>
+    </div>
+
+    <div class="grid-3" style="margin-top:18px;">
+
+      <div class="card attack">
+        <div class="idx">01 · Native Transfer</div>
+        <h3>Wrong-Address Transfer</h3>
+        <p>User signs what looks like a normal ETH/SOL/BNB transfer, but the recipient is an attacker-controlled EOA. Calldata is empty, so there is nothing to parse — detection depends entirely on counterparty reputation.</p>
+        <div class="sig"><strong>Key signals:</strong> recipient age on-chain, distinct-sender count, originating dApp reputation, value relative to wallet balance.</div>
+        <div class="tag-row">
+          <span class="chip sev-high">High severity</span>
+          <span class="chip">Native asset</span>
+          <span class="chip">EOA recipient</span>
+        </div>
+      </div>
+
+      <div class="card attack">
+        <div class="idx">02 · Token Transfer</div>
+        <h3>Transfer Farming</h3>
+        <p>ERC-20 analog of the above. The dApp prompts an outright transfer of the user's token balance — often the full holdings — to an attacker address.</p>
+        <div class="sig"><strong>Key signals:</strong> recipient reputation, percent of user's token balance transferred, unusual batching across tokens.</div>
+        <div class="tag-row">
+          <span class="chip sev-high">High severity</span>
+          <span class="chip">ERC-20</span>
+          <span class="chip">Full-balance drain</span>
+        </div>
+      </div>
+
+      <div class="card attack">
+        <div class="idx">03 · Allowance Abuse</div>
+        <h3>Approval Farming</h3>
+        <p>User grants a malicious spender an approval — often unlimited. Nothing leaves the wallet in the moment, which is exactly why it works. The drain happens at the attacker's convenience.</p>
+        <div class="sig"><strong>Key signals:</strong> spender is an EOA (no code to audit), spender reputation, unlimited allowance, no matching legit protocol.</div>
+        <div class="tag-row">
+          <span class="chip sev-high">High severity</span>
+          <span class="chip">Approval exposure</span>
+          <span class="chip">Delayed drain</span>
+        </div>
+      </div>
+
+      <div class="card attack">
+        <div class="idx">04 · Off-Chain Signature</div>
+        <h3>Permit / EIP-712 Farming</h3>
+        <p>Stealthier variant of approval farming. Instead of an on-chain approval, the user signs an EIP-712 message (e.g., <code>permit</code>) off-chain. Many scanners ignore signed messages entirely.</p>
+        <div class="sig"><strong>Key signals:</strong> Blockaid simulates the on-chain transaction the signature <em>would enable</em> and evaluates it like any other approval.</div>
+        <div class="tag-row">
+          <span class="chip sev-high">High severity</span>
+          <span class="chip">EIP-712</span>
+          <span class="chip">Off-chain</span>
+        </div>
+      </div>
+
+      <div class="card attack">
+        <div class="idx">05 · Contract Disguise</div>
+        <h3>Stealthy Malicious Contracts</h3>
+        <p>A contract with verified, human-readable source is deployed to add a veneer of legitimacy. The trick hides in plain sight — e.g., a <code>claim</code> function that credits an arbitrary recipient parameter instead of <code>msg.sender</code>.</p>
+        <div class="sig"><strong>Key signals:</strong> simulated balance changes don't match user intent, arbitrary-sender patterns in calldata, novel contracts surfacing across known malicious dApps.</div>
+        <div class="tag-row">
+          <span class="chip sev-high">High severity</span>
+          <span class="chip">Verified source</span>
+          <span class="chip">Semantic trick</span>
+        </div>
+      </div>
+
+      <div class="card attack">
+        <div class="idx">06 · UI Layer</div>
+        <h3>Address Spoofing</h3>
+        <p>Because wallets truncate long addresses, attackers generate vanity addresses whose visible portion (first/last characters) matches a familiar counterparty — or the burn address. A UI-layer attack that signature review alone cannot catch.</p>
+        <div class="sig"><strong>Key signals:</strong> prefix/suffix collision with prior counterparties, lookalike of zero-address, transfer-to-self patterns that aren't actually self.</div>
+        <div class="tag-row">
+          <span class="chip sev-med">Medium severity</span>
+          <span class="chip">UX exploit</span>
+          <span class="chip">Vanity address</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Why Two Detection Layers</h2>
+    <p class="muted">Transaction scanning and dApp scanning are not substitutes — they reinforce each other. Used together, they close blind spots that single-layer defenses leave open.</p>
+
+    <div class="pillars">
+      <div class="pillar">
+        <h3>Transaction Scanning</h3>
+        <p class="muted" style="margin-bottom:0;">Simulates the actual effects of a signature — asset diffs, approvals, exposures, and exit paths — rather than parsing calldata.</p>
+        <ul class="tight">
+          <li>Catches raw transfers, approvals, permits, and semantic tricks like arbitrary-recipient contracts.</li>
+          <li>Covers both on-chain transactions and off-chain EIP-712 messages.</li>
+          <li>Reputation context on every address and token involved.</li>
+        </ul>
+      </div>
+      <div class="pillar">
+        <h3>dApp Scanning</h3>
+        <p class="muted" style="margin-bottom:0;">Evaluates the site itself — JavaScript fingerprints, network behavior, and brand-impersonation signals — before any transaction is signed.</p>
+        <ul class="tight">
+          <li>Flags drainer-SDK reuse across thousands of sites.</li>
+          <li>Surfaces malicious dApps even when the transaction they emit looks superficially clean.</li>
+          <li>Provides context that lifts transaction-layer confidence in ambiguous cases.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h3>The feedback loop</h3>
+      <p>When a known-malicious dApp emits a transaction that looks benign, we investigate a potential transaction-rule bypass. When a reputable dApp emits a transaction that looks malicious, we investigate a potential compromise. Neither layer alone produces this signal — the combination is what keeps pace with weekly drainer iteration.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>What This Means for a Wallet Team</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Simulation is not optional</h3>
+        <p class="muted" style="margin:0;font-size:14.5px;">A calldata-only view cannot distinguish an empty transfer to a malicious EOA from a benign send, cannot surface off-chain permit risk, and cannot catch stealthy contract patterns. Simulation is the baseline for meaningful user warnings.</p>
+      </div>
+      <div class="card">
+        <h3>Reputation scales where rules don't</h3>
+        <p class="muted" style="margin:0;font-size:14.5px;">Drainer kits change weekly; reputation signals accumulated across millions of wallet interactions do not. The breadth of Blockaid's integrations is a direct input into detection quality.</p>
+      </div>
+      <div class="card">
+        <h3>Both layers, or neither</h3>
+        <p class="muted" style="margin:0;font-size:14.5px;">Shipping transaction scanning without dApp scanning (or vice versa) leaves coverage gaps that drainers actively exploit. The two should be deployed as a package.</p>
+      </div>
+      <div class="card">
+        <h3>Feedback matters</h3>
+        <p class="muted" style="margin:0;font-size:14.5px;">A reporting endpoint for false positives and false negatives is part of the product. User- and integrator-reported cases feed directly into our threat intel pipeline.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>Blockaid — Executive Overview · Wallet Drainer Detection</div>
+    <div>Internal reference · Not for external distribution without review</div>
+  </footer>
+
+</div>
+</body>
+</html>
