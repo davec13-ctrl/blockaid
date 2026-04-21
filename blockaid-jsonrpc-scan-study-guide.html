@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blockaid JSON-RPC Scanning API — SE Study Guide</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --panel: #1a212b;
+    --panel-2: #232c38;
+    --text: #e6edf3;
+    --muted: #9ba8b8;
+    --accent: #5eb3ff;
+    --good: #3ddc84;
+    --warn: #f5c542;
+    --bad: #ff6b6b;
+    --border: #2c3744;
+    --code-bg: #0a0e13;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    line-height: 1.65;
+    font-size: 15px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 48px 32px 96px; }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+  }
+  header h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    letter-spacing: -0.02em;
+  }
+  header .meta {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  nav.toc {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 40px;
+  }
+  nav.toc h3 {
+    margin: 0 0 12px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  nav.toc ol {
+    margin: 0;
+    padding-left: 20px;
+    columns: 2;
+    column-gap: 32px;
+  }
+  nav.toc li { margin: 4px 0; break-inside: avoid; }
+  nav.toc a { color: var(--accent); text-decoration: none; font-size: 14px; }
+  nav.toc a:hover { text-decoration: underline; }
+
+  section { margin-bottom: 56px; scroll-margin-top: 24px; }
+  section h2 {
+    font-size: 22px;
+    margin: 0 0 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    letter-spacing: -0.01em;
+  }
+  section h3 {
+    font-size: 17px;
+    margin: 28px 0 8px;
+    color: var(--text);
+  }
+  section h4 {
+    font-size: 14px;
+    margin: 20px 0 6px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  p { margin: 10px 0; }
+  code {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: "SF Mono", Menlo, Monaco, "Roboto Mono", monospace;
+    font-size: 13px;
+    color: #ffd599;
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-family: "SF Mono", Menlo, Monaco, "Roboto Mono", monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    margin: 12px 0;
+  }
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text);
+    font-size: inherit;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    background: var(--panel);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  tr:nth-child(even) td { background: rgba(255,255,255,0.015); }
+
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: rgba(94, 179, 255, 0.07);
+    padding: 14px 18px;
+    margin: 16px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .callout.warn {
+    border-left-color: var(--warn);
+    background: rgba(245, 197, 66, 0.07);
+  }
+  .callout.bad {
+    border-left-color: var(--bad);
+    background: rgba(255, 107, 107, 0.07);
+  }
+  .callout.good {
+    border-left-color: var(--good);
+    background: rgba(61, 220, 132, 0.07);
+  }
+  .callout p:first-child { margin-top: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-right: 4px;
+  }
+  .badge.good { background: rgba(61, 220, 132, 0.15); color: var(--good); }
+  .badge.warn { background: rgba(245, 197, 66, 0.15); color: var(--warn); }
+  .badge.bad  { background: rgba(255, 107, 107, 0.15); color: var(--bad); }
+
+  .field-block {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 22px;
+    margin: 12px 0;
+  }
+  .field-block h4 {
+    margin-top: 0;
+  }
+  .field-block .field-name {
+    font-family: "SF Mono", Menlo, monospace;
+    color: #ffd599;
+    font-size: 16px;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .flow {
+    counter-reset: step;
+    list-style: none;
+    padding: 0;
+  }
+  .flow li {
+    counter-increment: step;
+    padding: 14px 18px 14px 56px;
+    margin: 10px 0;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    position: relative;
+  }
+  .flow li::before {
+    content: counter(step);
+    position: absolute;
+    left: 16px;
+    top: 14px;
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    color: var(--bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  .qa {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 12px 0;
+  }
+  .qa .q {
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .qa .a { color: var(--muted); font-size: 14px; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  ul, ol { padding-left: 22px; }
+  li { margin: 4px 0; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  @media (max-width: 720px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    nav.toc ol { columns: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Blockaid JSON-RPC Scanning API — SE Study Guide</h1>
+  <div class="meta">Personal reference for the <code>POST /v0/evm/json-rpc/scan</code> endpoint · Compiled April 2026</div>
+</header>
+
+<nav class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#big-picture">The big picture</a></li>
+    <li><a href="#wallet-model">Wallet integration model</a></li>
+    <li><a href="#envelope">Request envelope anatomy</a></li>
+    <li><a href="#options">Why pick options selectively</a></li>
+    <li><a href="#examples">Three example requests</a></li>
+    <li><a href="#backend">What happens in Blockaid's backend</a></li>
+    <li><a href="#simulation">The <code>simulation</code> response — field by field</a></li>
+    <li><a href="#exposures">Why <code>exposures</code> matters</a></li>
+    <li><a href="#reading-order">Response reading order</a></li>
+    <li><a href="#fingerprints">Attack pattern fingerprints</a></li>
+    <li><a href="#seaport">Case study: Seaport farming</a></li>
+    <li><a href="#self-check">Self-check questions</a></li>
+  </ol>
+</nav>
+
+<!-- ========================================================== -->
+<section id="big-picture">
+<h2>1. The big picture</h2>
+
+<p>
+The <code>POST /v0/evm/json-rpc/scan</code> endpoint is Blockaid's pre-confirmation transaction safety check for EVM wallets. Its single job: take a raw JSON-RPC payload that a dApp asked the wallet to sign or send, and return two things — a verdict (<code>validation</code>) and a simulated outcome (<code>simulation</code>) — so the wallet can warn the user before they commit.
+</p>
+
+<p>
+Two ideas drive everything else:
+</p>
+
+<ul>
+  <li><strong>The wallet is a dumb forwarder.</strong> It doesn't decode payloads, doesn't decide which RPC methods are "risky," doesn't try to identify attacks. It scans every signing prompt and renders the result.</li>
+  <li><strong>Blockaid is the brain.</strong> It recognizes payload shapes (Permit, Permit2, Seaport order, plain transaction, UserOp), runs validation heuristics, and forks mainnet to simulate outcomes.</li>
+</ul>
+
+<div class="callout">
+The endpoint is designed to be called once per signing prompt. The wallet's UX flow: dApp → wallet receives RPC call → wallet hits Blockaid → wallet renders confirmation modal with verdict → user confirms or cancels.
+</div>
+</section>
+
+<!-- ========================================================== -->
+<section id="wallet-model">
+<h2>2. Wallet integration model</h2>
+
+<p>
+Wallets intercept <em>every</em> JSON-RPC method that produces a user-visible signing prompt. There is no menu of "risky" methods to pick from — the answer is always "scan all of them." The full set:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Method</th><th>What it is</th><th>Why scan</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><code>eth_sendTransaction</code></td><td>Standard EOA transaction</td><td>Most common attack surface (approvals, swaps, mints)</td></tr>
+    <tr><td><code>eth_sendRawTransaction</code></td><td>Pre-signed transaction broadcast</td><td>Same risk profile as above</td></tr>
+    <tr><td><code>eth_signTypedData_v4</code></td><td>EIP-712 structured signature</td><td>Permits, Permit2, Seaport orders — the off-chain attack surface</td></tr>
+    <tr><td><code>personal_sign</code></td><td>Plain message signature</td><td>SIWE phishing, log-in tricks</td></tr>
+    <tr><td><code>eth_sendUserOperation</code></td><td>EIP-4337 account abstraction</td><td>Smart-contract wallets (Safe, Argent, Coinbase Smart Wallet)</td></tr>
+    <tr><td><code>wallet_sendCalls</code></td><td>EIP-5792 batched calls</td><td>Modern atomic batches</td></tr>
+  </tbody>
+</table>
+
+<div class="callout warn">
+The "many examples" in the API docs dropdown aren't implementation choices for the wallet. They're a catalog of payload shapes Blockaid handles. The wallet just forwards whatever the dApp produced.
+</div>
+</section>
+
+<!-- ========================================================== -->
+<section id="envelope">
+<h2>3. Request envelope anatomy</h2>
+
+<p>The outer shape is identical for every scan — only the inner <code>data</code> changes:</p>
+
+<pre><code>{
+  "chain":           "ethereum",                    // Network identifier
+  "account_address": "0x...",                       // The user (signer)
+  "metadata": {
+    "domain": "https://dapp.example"                // dApp URL → phishing check
+  },
+  "block":           "latest",                      // Optional pin
+  "options":         ["simulation", "validation"],  // What you want back
+  "data": {                                         // Raw RPC payload from dApp
+    "method": "eth_sendTransaction" | "eth_signTypedData_v4" | ...,
+    "params": [ ... ]                               // Whatever the method requires
+  },
+  "state_override":  { ... }                        // Optional: hypothetical state
+}</code></pre>
+
+<p>
+The <code>data</code> field is passed through untouched from the dApp. The <code>method</code> inside it tells Blockaid which parser to use. The <code>options</code> array is the integrator's lever for cost vs. depth.
+</p>
+</section>
+
+<!-- ========================================================== -->
+<section id="options">
+<h2>4. Why pick options selectively</h2>
+
+<p>
+A naive integration always asks for both <code>validation</code> and <code>simulation</code>. A thoughtful one picks per context:
+</p>
+
+<table>
+  <thead><tr><th>Option</th><th>Cost</th><th>What it gives you</th><th>Skip when…</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>validation</code></td>
+      <td>Cheap, fast (DB lookups + rules)</td>
+      <td>Verdict (Benign/Warning/Malicious), reason, features</td>
+      <td>Almost never</td>
+    </tr>
+    <tr>
+      <td><code>simulation</code></td>
+      <td>Expensive (mainnet fork + EVM exec)</td>
+      <td>Asset diffs, exposures, account summary, USD impact</td>
+      <td><code>personal_sign</code> of plain text; quick pre-checks</td>
+    </tr>
+    <tr>
+      <td><code>gas_estimation</code></td>
+      <td>Moderate</td>
+      <td>Estimated gas + fee for the tx</td>
+      <td>Wallet does its own estimation</td>
+    </tr>
+    <tr>
+      <td><code>events</code></td>
+      <td>Moderate</td>
+      <td>Decoded event log</td>
+      <td>Not surfacing event detail in UI</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>
+Common pattern: <strong>validation only</strong> for low-latency pre-checks (wallet connect, hover-preview), <strong>both</strong> for the actual confirm modal where user is committing.
+</p>
+</section>
+
+<!-- ========================================================== -->
+<section id="examples">
+<h2>5. Three example requests</h2>
+
+<p>The same envelope wrapping three different attack shapes.</p>
+
+<h3>5.1 Malicious <code>approve()</code> transaction</h3>
+<p>dApp asks wallet to send a tx granting unlimited USDC to a drainer.</p>
+<pre><code>{
+  "chain": "ethereum",
+  "account_address": "0x5E1a0D484c5F0DE722E82f9dca3A9d5A421d47cB",
+  "metadata": { "domain": "https://claim-arbitrum-airdrop.xyz" },
+  "options": ["simulation", "validation"],
+  "data": {
+    "method": "eth_sendTransaction",
+    "params": [{
+      "from": "0x5E1a0D484c5F0DE722E82f9dca3A9d5A421d47cB",
+      "to":   "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+      "data": "0x095ea7b3000000000000000000000000a9cfc982a66d0134fee2539cfd633559fb5cf9a0ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "value": "0x0"
+    }]
+  }
+}</code></pre>
+<p>Selector <code>0x095ea7b3</code> = <code>approve(spender, amount)</code>. Spender is the drainer; amount is MAX_UINT256.</p>
+<p><span class="badge bad">Expected verdict</span> Malicious · <code>exposures</code> populated · <code>assets_diffs</code> empty.</p>
+
+<h3>5.2 Malicious EIP-2612 Permit signature</h3>
+<p>Same drainer, but off-chain. No tx, no gas — just a signature.</p>
+<pre><code>{
+  "chain": "ethereum",
+  "account_address": "0x5E1a0D484c5F0DE722E82f9dca3A9d5A421d47cB",
+  "metadata": { "domain": "https://uniswap-rewards.app" },
+  "options": ["simulation", "validation"],
+  "data": {
+    "method": "eth_signTypedData_v4",
+    "params": [
+      "0x5E1a0D484c5F0DE722E82f9dca3A9d5A421d47cB",
+      {
+        "domain": {
+          "name": "USD Coin", "version": "2", "chainId": 1,
+          "verifyingContract": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+        },
+        "primaryType": "Permit",
+        "message": {
+          "owner":   "0x5E1a0D484c5F0DE722E82f9dca3A9d5A421d47cB",
+          "spender": "0xa9cfc982A66D0134FEe2539cFd633559Fb5cf9a0",
+          "value":   "115792089237316195423570985008687907853269984665640564039457584007913129639935",
+          "nonce":   "0",
+          "deadline": "1893456000"
+        }
+      }
+    ]
+  }
+}</code></pre>
+<p><span class="badge bad">Expected verdict</span> Malicious · <code>exposures</code> populated · <code>assets_diffs</code> empty.</p>
+
+<h3>5.3 Seaport farming signature</h3>
+<p>Signs a Seaport order selling BAYC #5312 for 0.001 ETH.</p>
+<pre><code>{
+  "chain": "ethereum",
+  "account_address": "0x5E1a0D484c5F0DE722E82f9dca3A9d5A421d47cB",
+  "metadata": { "domain": "https://bayc-staking.lol" },
+  "options": ["simulation", "validation"],
+  "data": {
+    "method": "eth_signTypedData_v4",
+    "params": [
+      "0x5E1a0D484c5F0DE722E82f9dca3A9d5A421d47cB",
+      {
+        "domain": {
+          "name": "Seaport", "version": "1.5", "chainId": 1,
+          "verifyingContract": "0x00000000000000ADc04C56Bf30aC9d3c0aAF14dC"
+        },
+        "primaryType": "OrderComponents",
+        "message": {
+          "offerer": "0x5E1a0D484c5F0DE722E82f9dca3A9d5A421d47cB",
+          "offer": [{
+            "itemType": 2,
+            "token": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
+            "identifierOrCriteria": "5312",
+            "startAmount": "1", "endAmount": "1"
+          }],
+          "consideration": [{
+            "itemType": 0,
+            "token": "0x0000000000000000000000000000000000000000",
+            "startAmount": "1000000000000000",
+            "endAmount":   "1000000000000000",
+            "recipient": "0x5E1a0D484c5F0DE722E82f9dca3A9d5A421d47cB"
+          }]
+        }
+      }
+    ]
+  }
+}</code></pre>
+<p><span class="badge bad">Expected verdict</span> Malicious (<code>seaport_farming</code>) · <code>exposures</code> EMPTY · <code>assets_diffs</code> shows the BAYC out / 0.001 ETH in.</p>
+
+<div class="callout warn">
+<strong>The teaching point across all three:</strong> envelope is identical, only <code>data</code> changes. The wallet writes one integration that handles every payload shape.
+</div>
+</section>
+
+<!-- ========================================================== -->
+<section id="backend">
+<h2>6. What happens in Blockaid's backend</h2>
+
+<p>For a request with both <code>simulation</code> and <code>validation</code> on, e.g., an <code>eth_signTypedData_v4</code> Seaport order:</p>
+
+<ol class="flow">
+  <li><strong>Ingress &amp; envelope parsing.</strong> Auth check, rate limit, parse envelope. Two parallel pipelines kick off.</li>
+  <li><strong>Payload recognition.</strong> Inspect <code>primaryType</code> + <code>verifyingContract</code> to identify the shape (Permit / Permit2 / Seaport / SafeTx / custom).</li>
+  <li><strong>Validation pipeline (parallel).</strong> Domain reputation, address reputation on every involved address, schema heuristics (e.g., MAX_UINT permits, sub-floor consideration), signer context. Aggregate into verdict.</li>
+  <li><strong>Simulation pipeline (parallel).</strong> Translate the signature into the hypothetical on-chain call it would enable (Permit → permit + drain; Seaport order → fulfillOrder). Fork mainnet at current block. Execute. Decode events. Price assets in USD. Aggregate per address.</li>
+  <li><strong>Merge &amp; respond.</strong> Combine both pipelines into the response JSON. Cross-check (e.g., catastrophic loss + Benign verdict = anomaly).</li>
+</ol>
+
+<p>
+The split matters because validation is cheap and fast (DB lookups, rules) while simulation is expensive (forked EVM execution). Running them in parallel keeps total latency dominated by simulation alone.
+</p>
+</section>
+
+<!-- ========================================================== -->
+<section id="simulation">
+<h2>7. The <code>simulation</code> response — field by field</h2>
+
+<p>Skip the following per the exercise: <code>contract_management</code>, <code>session_key</code>, <code>params.user_operation_calldata</code>.</p>
+
+<div class="field-block">
+  <h4 class="field-name">status</h4>
+  <p><code>"Success"</code> means the rest of the simulation block is reliable. <code>"Failure"</code> means simulation reverted — degrade your UI to a "couldn't simulate, proceed cautiously" state. Read this field <em>first</em>.</p>
+</div>
+
+<div class="field-block">
+  <h4 class="field-name">assets_diffs</h4>
+  <p>Map keyed by address. Each entry has <code>in</code> and <code>out</code> arrays of asset-movement objects. Each movement contains:</p>
+  <ul>
+    <li><code>asset</code> — type (ERC20/721/1155/NATIVE), address, symbol, decimals, logo</li>
+    <li><code>value</code> — human-readable amount string</li>
+    <li><code>raw_value</code> — wei-level string (use for math)</li>
+    <li><code>token_id</code> — NFT only</li>
+    <li><code>usd_price</code> — live USD per unit</li>
+    <li><code>summary</code> — pre-rendered sentence ("Sent BAYC #5312")</li>
+  </ul>
+  <p>Tracks what moves <strong>now</strong>. Silent on future risk.</p>
+</div>
+
+<div class="field-block">
+  <h4 class="field-name">transaction_actions</h4>
+  <p>Top-level array of action labels: <code>"approval"</code>, <code>"transfer"</code>, <code>"native_transfer"</code>, <code>"token_transfer"</code>, etc. Used for icons and section routing in your UI. Note: <code>"approval"</code> in this list does not necessarily mean a NEW approval is granted — it can also mean an existing approval is being used. Cross-reference with <code>exposures</code> to disambiguate.</p>
+</div>
+
+<div class="field-block">
+  <h4 class="field-name">total_usd_diff</h4>
+  <p>Per-address bottom-line dollars. <code>{ in, out, total }</code>. The <code>total</code> on the user's address is the single most powerful number to surface in a confirmation modal.</p>
+</div>
+
+<div class="field-block">
+  <h4 class="field-name">exposures</h4>
+  <p>Future risk granted, not present movement. Map keyed by address. Each entry has an <code>exposures</code> array with:</p>
+  <ul>
+    <li><code>asset</code> — what can be moved</li>
+    <li><code>spender</code> — who's getting permission</li>
+    <li><code>exposure</code> — amount, is_approved_for_all flag, token_id</li>
+    <li><code>summary</code> — pre-rendered ("Approved unlimited USDC to 0xa9cf…")</li>
+  </ul>
+  <div class="callout warn"><strong>Empty <code>exposures</code> ≠ safe.</strong> A tx using a pre-existing approval (Seaport farming) shows nothing here but still drains you.</div>
+</div>
+
+<div class="field-block">
+  <h4 class="field-name">total_usd_exposure</h4>
+  <p>Dollar-value sibling of <code>exposures</code>. Per-address USD totals of new permissions granted. Lets you say "$50,000 at risk" even when nothing moves yet.</p>
+</div>
+
+<div class="field-block">
+  <h4 class="field-name">address_details</h4>
+  <p>Map of every involved address → metadata: <code>name_tag</code> (e.g., "Seaport 1.5", "Fake_Phishing7802"), <code>address_type</code>, <code>contract_name</code>, <code>label</code>. Always render label substitutions for raw hex addresses in your UI.</p>
+</div>
+
+<div class="field-block">
+  <h4 class="field-name">account_summary</h4>
+  <p>Same info as <code>assets_diffs</code> + <code>exposures</code>, re-centered on the user. Two sub-fields:</p>
+  <ul>
+    <li><code>balance_changes</code> — per-asset before/after for the user. Cleanest data to feed your "what's happening to you?" panel.</li>
+    <li><code>traces</code> — low-level call traces. Debug / power-user only.</li>
+  </ul>
+</div>
+
+<div class="field-block">
+  <h4 class="field-name">params</h4>
+  <p>Echo of what was simulated: <code>block</code>, <code>account_address</code>, and most importantly <code>calldata</code> — the <em>decoded</em> function call (e.g., "fulfillOrder(...)"). Useful for power-user details and audit logs.</p>
+</div>
+
+<div class="field-block">
+  <h4 class="field-name">missing_balances</h4>
+  <p>Diagnostic. Non-empty means simulation couldn't fully resolve some balances — treat as a confidence caveat.</p>
+</div>
+
+<div class="field-block">
+  <h4 class="field-name">simulation_run_count</h4>
+  <p>Internal metric. Ignore unless debugging.</p>
+</div>
+</section>
+
+<!-- ========================================================== -->
+<section id="exposures">
+<h2>8. Why <code>exposures</code> matters</h2>
+
+<p>
+<code>exposures</code> exists because approval-based attacks move nothing in the current transaction — they're invisible in <code>assets_diffs</code>. Without this field, the wallet would show "nothing happens here" on exactly the transactions most likely to drain a user.
+</p>
+
+<h3>What it lets the wallet do</h3>
+<ol>
+  <li><strong>Surface risk on tx where nothing moves.</strong> Ice-phishing <code>approve(MAX_UINT)</code> shows nothing in <code>assets_diffs</code> — only <code>exposures</code> reveals the danger.</li>
+  <li><strong>Separate "moves now" from "could move later" in the modal.</strong> Two different mental models for the user. Two structured fields, two UI sections.</li>
+  <li><strong>Quantify future risk in dollars</strong> via <code>total_usd_exposure</code>. Users understand dollars; they don't understand MAX_UINT256.</li>
+  <li><strong>Apply different UX friction to approvals vs transfers.</strong> Many wallets add typing-based confirmation or cooldown timers when <code>exposures</code> is non-empty.</li>
+  <li><strong>Distinguish new approvals from uses of existing approvals.</strong> <code>transaction_actions</code> can't tell these apart; <code>exposures</code> can. Only newly-granted approvals appear here.</li>
+  <li><strong>Feed post-tx "active approvals" dashboards.</strong> Wallets like Rabby / Revoke.cash use historical <code>exposures</code> as the canonical log of what users have authorized.</li>
+  <li><strong>Match attack class to UX treatment.</strong> The combination of <code>assets_diffs</code> and <code>exposures</code> populated/empty is a fingerprint for the attack shape (see §10).</li>
+</ol>
+
+<div class="callout">
+<strong>Mental model:</strong>
+<br><code>assets_diffs</code> answers <em>"what changes if I sign this right now?"</em>
+<br><code>exposures</code> answers <em>"what doors am I leaving unlocked after I sign?"</em>
+</div>
+</section>
+
+<!-- ========================================================== -->
+<section id="reading-order">
+<h2>9. Response reading order cheat sheet</h2>
+
+<p>For any new response, read in this order:</p>
+
+<ol class="flow">
+  <li><code>simulation.status</code> — is the rest trustworthy?</li>
+  <li><code>validation.result_type</code> — what's the verdict?</li>
+  <li><code>simulation.account_summary.balance_changes</code> — what happens to the user?</li>
+  <li><code>simulation.total_usd_diff[user_address].total</code> — net dollar impact.</li>
+  <li><code>simulation.exposures[user_address]</code> + <code>total_usd_exposure</code> — future risk granted.</li>
+  <li><code>simulation.address_details</code> — who are the counterparties really?</li>
+  <li><code>simulation.transaction_actions</code> — what kinds of actions (UI icons)?</li>
+  <li><code>simulation.assets_diffs</code> — full per-address breakdown if needed.</li>
+  <li><code>simulation.params.calldata</code> — decoded function call (if you care).</li>
+</ol>
+</section>
+
+<!-- ========================================================== -->
+<section id="fingerprints">
+<h2>10. Attack pattern fingerprints</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Attack shape</th>
+      <th><code>assets_diffs</code></th>
+      <th><code>exposures</code></th>
+      <th>Verdict</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Ice phishing (<code>approve</code> to drainer)</td>
+      <td>Empty</td>
+      <td>Populated, large $</td>
+      <td><span class="badge bad">Malicious</span></td>
+    </tr>
+    <tr>
+      <td>Permit-to-drainer (off-chain)</td>
+      <td>Empty</td>
+      <td>Populated, large $</td>
+      <td><span class="badge bad">Malicious</span></td>
+    </tr>
+    <tr>
+      <td>Permit2 batch to drainer</td>
+      <td>Empty</td>
+      <td>Multiple entries</td>
+      <td><span class="badge bad">Malicious</span></td>
+    </tr>
+    <tr>
+      <td>Seaport farming</td>
+      <td>Big — NFT out, dust in</td>
+      <td>Empty</td>
+      <td><span class="badge bad">Malicious</span></td>
+    </tr>
+    <tr>
+      <td>Direct transfer to phishing addr</td>
+      <td>User loses asset</td>
+      <td>Empty</td>
+      <td><span class="badge bad">Malicious</span></td>
+    </tr>
+    <tr>
+      <td>Legit Uniswap swap</td>
+      <td>Token in / token out, balanced $</td>
+      <td>Maybe transient approval</td>
+      <td><span class="badge good">Benign</span></td>
+    </tr>
+    <tr>
+      <td>Legit DEX approval (Uniswap router)</td>
+      <td>Empty</td>
+      <td>Populated, but trusted spender</td>
+      <td><span class="badge good">Benign</span></td>
+    </tr>
+    <tr>
+      <td>SIWE login (<code>personal_sign</code>)</td>
+      <td>Empty</td>
+      <td>Empty</td>
+      <td><span class="badge good">Benign</span> (validation only)</td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+<!-- ========================================================== -->
+<section id="seaport">
+<h2>11. Case study: Seaport farming attack flow</h2>
+
+<h3>The setup (months earlier, dormant)</h3>
+<p>
+Victim once listed an NFT on OpenSea, which required calling <code>setApprovalForAll(Seaport, true)</code> on the BAYC contract. This grant is permanent and gives Seaport authority to move <em>any</em> BAYC the victim owns — forever. This is the loaded gun.
+</p>
+
+<h3>The attack (the moment of the scan)</h3>
+<ol class="flow">
+  <li>Victim lands on a phishing site (Discord link, fake airdrop, fake staking page).</li>
+  <li>Site requests <code>eth_signTypedData_v4</code> — a signature, not a transaction. No gas, no obvious red flag in MetaMask.</li>
+  <li>The typed data is a Seaport order: "I offer BAYC #5312 for 0.001 ETH, anyone can fulfill."</li>
+  <li>Victim clicks Sign. Nothing visible happens.</li>
+  <li>Attacker submits the signed order to Seaport, paying 0.001 ETH themselves.</li>
+  <li>Seaport validates: signature good, approval exists, payment supplied. Atomically transfers BAYC out and 0.001 ETH in.</li>
+  <li>Victim is left with 0.001 ETH ($1.65). Attacker has a $39,859 NFT.</li>
+</ol>
+
+<h3>What the response shows</h3>
+<ul>
+  <li><code>validation.result_type: "Malicious"</code>, <code>reason: "seaport_farming"</code></li>
+  <li><code>assets_diffs</code> — three addresses: victim (BAYC out, ETH in), attacker helper (ETH out, decoy payment), attacker receiver (BAYC in, tagged <code>Fake_Phishing7802</code>)</li>
+  <li><code>total_usd_diff</code> — victim total ≈ <strong>−$39,857.65</strong></li>
+  <li><code>exposures: {}</code> — empty, because no NEW approval is granted; the old <code>setApprovalForAll</code> is being used</li>
+  <li><code>transaction_actions: ["approval", "native_transfer", "token_transfer"]</code> — note "approval" appears even though exposures is empty (use vs. grant)</li>
+  <li><code>address_details</code> — Seaport 1.5 labeled, attacker tagged as known phishing</li>
+</ul>
+
+<div class="callout bad">
+The malicious step is a <strong>signature</strong>. The damage is realized later, on-chain. Without simulation, the user has no way to see the economic reality.
+</div>
+</section>
+
+<!-- ========================================================== -->
+<section id="self-check">
+<h2>12. Self-check questions</h2>
+
+<div class="qa">
+  <div class="q">Q1. A user signs an EIP-2612 Permit granting unlimited USDC to a drainer. Which fields populate, which stay empty?</div>
+  <div class="a">A: <code>exposures</code> and <code>total_usd_exposure</code> populate (large $). <code>assets_diffs</code> and <code>total_usd_diff</code> are empty. Mirror image of Seaport farming.</div>
+</div>
+
+<div class="qa">
+  <div class="q">Q2. <code>simulation.status: "Failure"</code> but <code>validation.result_type: "Malicious"</code>. What should the wallet display?</div>
+  <div class="a">A: Show the Malicious verdict prominently — validation is independent of simulation. Do <em>not</em> show <code>assets_diffs</code>, <code>exposures</code>, or <code>total_usd_diff</code> values; they're unreliable on Failure. Render: "Blockaid flagged this as malicious. We couldn't simulate the outcome."</div>
+</div>
+
+<div class="qa">
+  <div class="q">Q3. <code>transaction_actions</code> contains <code>"approval"</code> but <code>exposures</code> is empty. What does that mean?</div>
+  <div class="a">A: The transaction <em>uses</em> an existing approval rather than <em>granting</em> a new one. Classic Seaport farming pattern.</div>
+</div>
+
+<div class="qa">
+  <div class="q">Q4. Why might a wallet ask for <code>validation</code> only and skip <code>simulation</code>?</div>
+  <div class="a">A: Latency-sensitive pre-checks (wallet connect, tooltip preview), low-cost rate-limit management, or a method like <code>personal_sign</code> on plain text where simulation has nothing meaningful to compute.</div>
+</div>
+
+<div class="qa">
+  <div class="q">Q5. The single most powerful number to display in a confirmation modal?</div>
+  <div class="a">A: <code>total_usd_diff[user_address].total</code> — the user's net dollar impact in one number.</div>
+</div>
+
+<div class="qa">
+  <div class="q">Q6. The wallet receives <code>eth_sendUserOperation</code> from a Safe. Does it scan?</div>
+  <div class="a">A: Yes. Every method that produces a user-visible signing prompt gets scanned. UserOps included.</div>
+</div>
+
+</section>
+
+<hr>
+<p style="color: var(--muted); font-size: 13px; text-align: center; margin-top: 48px;">
+Compiled from the OpenAPI spec at <code>docs.blockaid.io</code> and a Seaport-farming reference response.<br>
+Skip-list per exercise: <code>contract_management</code>, <code>session_key</code>, <code>params.user_operation_calldata</code>.
+</p>
+
+</div>
+</body>
+</html>
