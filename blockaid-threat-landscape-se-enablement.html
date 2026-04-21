@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Blockaid Threat Landscape — SE Enablement</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #14171c;
+    --panel-2: #1a1e25;
+    --border: #262b33;
+    --text: #e7eaee;
+    --muted: #9aa3ad;
+    --accent: #6ee7b7;
+    --accent-2: #60a5fa;
+    --accent-3: #c084fc;
+    --danger: #f87171;
+    --warn: #fbbf24;
+    --ok: #34d399;
+    --chip-bg: #1f2630;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 56px 28px 96px;
+  }
+  header.hero {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 36px;
+    margin-bottom: 48px;
+  }
+  .eyebrow {
+    color: var(--accent);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-size: 44px;
+    line-height: 1.1;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+  .lede {
+    color: var(--muted);
+    font-size: 18px;
+    max-width: 820px;
+    margin: 0;
+  }
+  h2 {
+    font-size: 26px;
+    letter-spacing: -0.01em;
+    margin: 64px 0 20px;
+    font-weight: 600;
+  }
+  h2 .section-tag {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    color: var(--accent-2);
+    text-transform: uppercase;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+  }
+  h2.part { font-size: 32px; border-top: 1px solid var(--border); padding-top: 48px; }
+  h2.part .section-tag { color: var(--accent-3); }
+  h3 {
+    font-size: 17px;
+    margin: 0 0 8px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+  }
+  p { margin: 0 0 14px; }
+  .muted { color: var(--muted); }
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 28px;
+  }
+  .kpi {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 18px;
+  }
+  .kpi .n {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+  .kpi .n .unit { color: var(--accent); }
+  .kpi .l {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.35;
+  }
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 22px 20px;
+  }
+  .card.attack {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+  }
+  .card.attack .tag-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 14px;
+  }
+  .card.case {
+    border-color: #2a3140;
+  }
+  .card.case .meta {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .card.case .meta .loss { color: var(--danger); font-weight: 600; }
+  .card.case ol {
+    padding-left: 20px;
+    margin: 12px 0 0;
+    font-size: 14px;
+    color: #c9d0d8;
+  }
+  .card.case ol li { margin-bottom: 6px; }
+  .card.case .takeaway {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: rgba(110,231,183,0.05);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    font-size: 13.5px;
+    color: #d7e3dd;
+  }
+  .card.case .takeaway strong { color: var(--accent); font-weight: 600; }
+  .chip {
+    display: inline-block;
+    background: var(--chip-bg);
+    color: var(--muted);
+    font-size: 11px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    letter-spacing: 0.01em;
+    border: 1px solid var(--border);
+  }
+  .chip.sev-high { color: #fca5a5; border-color: #3f1d1d; background: #2a1416; }
+  .chip.sev-med { color: var(--warn); border-color: #3a2e12; background: #241e0f; }
+  .chip.sev-low { color: var(--accent); border-color: #13352a; background: #0f2821; }
+  .chip.product { color: var(--accent-2); border-color: #1b2f4d; background: #0f1a2a; }
+  .idx {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .card p { font-size: 14.5px; color: #c9d0d8; }
+  .card .sig {
+    font-size: 12.5px;
+    color: var(--muted);
+    margin-top: 10px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+  }
+  .card .sig strong { color: var(--text); font-weight: 600; }
+  .pillars {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .pillar {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+  }
+  .pillar h3 { color: var(--accent-2); }
+  ul.tight {
+    margin: 10px 0 0;
+    padding-left: 18px;
+    color: #c9d0d8;
+    font-size: 14.5px;
+  }
+  ul.tight li { margin-bottom: 6px; }
+  .callout {
+    background: linear-gradient(180deg, rgba(110,231,183,0.06), rgba(96,165,250,0.05));
+    border: 1px solid #1f3a36;
+    border-radius: 14px;
+    padding: 22px 24px;
+    margin-top: 24px;
+  }
+  .callout h3 { color: var(--accent); margin-bottom: 6px; }
+  .callout p { color: #c9d0d8; font-size: 14.5px; margin: 0; }
+  .callout.warn { background: linear-gradient(180deg, rgba(248,113,113,0.06), rgba(251,191,36,0.05)); border-color: #4a2525; }
+  .callout.warn h3 { color: var(--danger); }
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 18px;
+  }
+  .flow .step {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 12px;
+    position: relative;
+  }
+  .flow .step .n {
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+  .flow .step .t {
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .flow .step .d {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+  table.playbook {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 18px;
+    font-size: 14px;
+  }
+  table.playbook th, table.playbook td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  table.playbook th {
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    background: var(--panel);
+  }
+  table.playbook td { color: #c9d0d8; }
+  table.playbook td strong { color: var(--text); }
+  table.playbook tbody tr:hover { background: rgba(255,255,255,0.015); }
+  .talk-track {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-2);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-top: 14px;
+    font-size: 13.5px;
+    color: #c9d0d8;
+    font-style: italic;
+  }
+  .talk-track strong { color: var(--accent-2); font-style: normal; }
+  footer {
+    margin-top: 72px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .legend {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .legend .chip { cursor: default; }
+  @media (max-width: 900px) {
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+    .grid-2, .pillars { grid-template-columns: 1fr; }
+    .grid-3 { grid-template-columns: 1fr; }
+    .flow { grid-template-columns: 1fr 1fr; }
+    h1 { font-size: 34px; }
+    h2.part { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">SE Enablement · Internal · Refreshed Apr 2026</div>
+    <h1>The Blockaid Threat Landscape</h1>
+    <p class="lede">
+      The last ninety days produced the largest wave of crypto exploits since 2022 — more than $600M stolen across protocol-layer hacks, a sustained DNS-hijacking campaign against DeFi frontends, and a steady stream of wallet-drainer iteration. This document is the SE reference for what happened, how Blockaid detects each class, and which product to lead with depending on the prospect.
+    </p>
+
+    <div class="kpis">
+      <div class="kpi">
+        <div class="n">$600<span class="unit">M+</span></div>
+        <div class="l">stolen across DeFi hacks in the last 2 weeks (Drift + KelpDAO alone ~$577M)</div>
+      </div>
+      <div class="kpi">
+        <div class="n">~10<span class="unit">%</span></div>
+        <div class="l">of dApps observed across Blockaid's integrations are malicious</div>
+      </div>
+      <div class="kpi">
+        <div class="n">5</div>
+        <div class="l">confirmed AngelFerno DNS hijacks against crypto brands in 60 days</div>
+      </div>
+      <div class="kpi">
+        <div class="n">5</div>
+        <div class="l">reinforcing detection layers across wallets, dApps, and protocols</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =================== PART 1: USER SIGNING SURFACE =================== -->
+
+  <h2 class="part"><span class="section-tag">Part 1 of 2</span>The User Signing Surface</h2>
+  <p class="muted" style="max-width:820px;">
+    As protocol-layer exploits became harder, attackers shifted to the softest remaining surface: end users. Wallet drainers trick users into signing transactions or messages they don't understand — turning a single signature into a full wallet drain. This section covers the drainer economy, the six primary transaction categories, and the AngelFerno distribution campaign that has dominated Q1 2026.
+  </p>
+
+  <section>
+    <h2><span class="section-tag">Threat model</span>How Drainers Reach Users</h2>
+    <p class="muted">Drainers are a product category with real engineering investment. Operators don't write malicious code — they buy it, then focus on distribution.</p>
+
+    <div class="flow">
+      <div class="step">
+        <div class="n">01</div>
+        <div class="t">Kit Purchase</div>
+        <div class="d">Operator buys a drainer SDK — JavaScript components that generate malicious transactions.</div>
+      </div>
+      <div class="step">
+        <div class="n">02</div>
+        <div class="t">Brand Impersonation</div>
+        <div class="d">Clone of a known dApp, or a hijacked domain of a real one. Often with verified-looking contracts.</div>
+      </div>
+      <div class="step">
+        <div class="n">03</div>
+        <div class="t">Distribution</div>
+        <div class="d">Paid ads, phishing email, DMs, compromised community channels — or registrar social engineering.</div>
+      </div>
+      <div class="step">
+        <div class="n">04</div>
+        <div class="t">Signature Capture</div>
+        <div class="d">User lands, connects wallet, and is prompted to sign a drainer-crafted tx or message.</div>
+      </div>
+      <div class="step">
+        <div class="n">05</div>
+        <div class="t">Drain</div>
+        <div class="d">Funds are swept — immediately on transfer drains, later on approvals and permits.</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <h3>The SDK economy changes how we defend</h3>
+      <p>Because the same kits are reused across hundreds of sites, static fingerprints of their JavaScript and network behavior let us flag new malicious dApps before a single user signs. Drainer kits also advertise "Blockaid bypass" claims in their sales channels — a signal we actively monitor.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="section-tag">Taxonomy</span>The Six Drainer Transaction Categories</h2>
+    <div class="legend">
+      <span>Severity:</span>
+      <span class="chip sev-high">High — immediate drain</span>
+      <span class="chip sev-med">Medium — delayed drain</span>
+      <span class="chip sev-low">Context-dependent</span>
+    </div>
+
+    <div class="grid-3" style="margin-top:18px;">
+
+      <div class="card attack">
+        <div class="idx">01 · Native Transfer</div>
+        <h3>Wrong-Address Transfer</h3>
+        <p>User signs what looks like a normal ETH/SOL/BNB transfer, but the recipient is an attacker-controlled EOA. Calldata is empty, so there is nothing to parse — detection depends entirely on counterparty reputation.</p>
+        <div class="sig"><strong>Key signals:</strong> recipient age on-chain, distinct-sender count, originating dApp reputation, value relative to wallet balance.</div>
+        <div class="tag-row">
+          <span class="chip sev-high">High severity</span>
+          <span class="chip">Native asset</span>
+          <span class="chip">EOA recipient</span>
+        </div>
+      </div>
+
+      <div class="card attack">
+        <div class="idx">02 · Token Transfer</div>
+        <h3>Transfer Farming</h3>
+        <p>ERC-20 analog of the above. The dApp prompts an outright transfer of the user's token balance — often the full holdings — to an attacker address.</p>
+        <div class="sig"><strong>Key signals:</strong> recipient reputation, percent of user's token balance transferred, unusual batching across tokens.</div>
+        <div class="tag-row">
+          <span class="chip sev-high">High severity</span>
+          <span class="chip">ERC-20</span>
+          <span class="chip">Full-balance drain</span>
+        </div>
+      </div>
+
+      <div class="card attack">
+        <div class="idx">03 · Allowance Abuse</div>
+        <h3>Approval Farming</h3>
+        <p>User grants a malicious spender an approval — often unlimited. Nothing leaves the wallet in the moment, which is exactly why it works. The drain happens at the attacker's convenience.</p>
+        <div class="sig"><strong>Key signals:</strong> spender is an EOA (no code to audit), spender reputation, unlimited allowance, no matching legit protocol.</div>
+        <div class="tag-row">
+          <span class="chip sev-high">High severity</span>
+          <span class="chip">Approval exposure</span>
+          <span class="chip">Delayed drain</span>
+        </div>
+      </div>
+
+      <div class="card attack">
+        <div class="idx">04 · Off-Chain Signature</div>
+        <h3>Permit / EIP-712 Farming</h3>
+        <p>Stealthier variant of approval farming. Instead of an on-chain approval, the user signs an EIP-712 message (e.g., <code>permit</code>) off-chain. Many scanners ignore signed messages entirely.</p>
+        <div class="sig"><strong>Key signals:</strong> Blockaid simulates the on-chain transaction the signature <em>would enable</em> and evaluates it like any other approval.</div>
+        <div class="tag-row">
+          <span class="chip sev-high">High severity</span>
+          <span class="chip">EIP-712</span>
+          <span class="chip">Off-chain</span>
+        </div>
+      </div>
+
+      <div class="card attack">
+        <div class="idx">05 · Contract Disguise</div>
+        <h3>Stealthy Malicious Contracts</h3>
+        <p>A contract with verified, human-readable source is deployed to add a veneer of legitimacy. The trick hides in plain sight — e.g., a <code>claim</code> function that credits an arbitrary recipient parameter instead of <code>msg.sender</code>.</p>
+        <div class="sig"><strong>Key signals:</strong> simulated balance changes don't match user intent, arbitrary-sender patterns in calldata, novel contracts surfacing across known malicious dApps.</div>
+        <div class="tag-row">
+          <span class="chip sev-high">High severity</span>
+          <span class="chip">Verified source</span>
+          <span class="chip">Semantic trick</span>
+        </div>
+      </div>
+
+      <div class="card attack">
+        <div class="idx">06 · UI Layer</div>
+        <h3>Address Spoofing</h3>
+        <p>Because wallets truncate long addresses, attackers generate vanity addresses whose visible portion (first/last characters) matches a familiar counterparty — or the burn address. A UI-layer attack that signature review alone cannot catch.</p>
+        <div class="sig"><strong>Key signals:</strong> prefix/suffix collision with prior counterparties, lookalike of zero-address, transfer-to-self patterns that aren't actually self.</div>
+        <div class="tag-row">
+          <span class="chip sev-med">Medium severity</span>
+          <span class="chip">UX exploit</span>
+          <span class="chip">Vanity address</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =================== CASE STUDIES: ANGELFERNO =================== -->
+
+  <section>
+    <h2><span class="section-tag">Case studies · Wallet drainers</span>The AngelFerno DNS Hijack Campaign</h2>
+    <p class="muted" style="max-width:820px;">
+      AngelFerno (a.k.a. Inferno) is the dominant drainer family tracked internally. The operators have industrialized <strong>registrar and DNS social engineering</strong> — instead of building fake lookalike domains, they hijack the real ones. Users visit the legitimate URL, see a valid TLS certificate, and get served a drainer-laced frontend. Our threat-intel team has documented five confirmed AngelFerno hijacks in the last sixty days.
+    </p>
+
+    <div class="grid-2" style="margin-top:22px;">
+
+      <div class="card case">
+        <div class="idx">Case 01 · Feb 16, 2026</div>
+        <h3>OpenEden + Curvance — GoDaddy social engineering</h3>
+        <div class="meta">
+          <span>Vector: Registrar account takeover</span>
+          <span class="loss">Loss: contained by Blockaid partners</span>
+        </div>
+        <p>Attackers socially engineered a GoDaddy employee to gain unauthorized access to both project accounts. Domains were transferred to Namecheap, NS records pointed at malicious IPs on web-hosting.com (162.254.39.77, 199.188.201.151), and fresh SSL certs were issued same-day to maintain valid HTTPS. Both frontends served AngelFerno drainer JavaScript.</p>
+        <div class="takeaway"><strong>Blockaid impact:</strong> dApp scanning flagged the malicious JS before drainer SDK could execute. Blockaid-protected wallets across all integrations remained safe through the incident window.</div>
+      </div>
+
+      <div class="card case">
+        <div class="idx">Case 02 · Mar 30, 2026</div>
+        <h3>Steakhouse Financial — OVH → Hostinger</h3>
+        <div class="meta">
+          <span>Vector: Registrar social engineering</span>
+          <span class="loss">Loss: pre-empted by Blockaid alert</span>
+        </div>
+        <p>Between 05:00–10:00 UTC, every DNS record for steakhouse.financial was replaced. Nameservers moved from OVH (stable since April 2022) to Hostinger's dns-parking.com, the A record moved to shared hosting in Germany, MX records moved off Google Workspace, and a new Let's Encrypt cert was issued at 08:57 UTC. Attacker gained full control over web and email.</p>
+        <div class="takeaway"><strong>Blockaid impact:</strong> Proactive detection — we notified Steakhouse and partner wallets before user losses materialized.</div>
+      </div>
+
+      <div class="card case">
+        <div class="idx">Case 03 · Apr 14, 2026</div>
+        <h3>CoW Swap — Registry-level takeover</h3>
+        <div class="meta">
+          <span>Vector: Social engineering of .fi TLD registry + AWS registrar</span>
+          <span class="loss">User losses: ~$1.2M</span>
+        </div>
+        <p>The most sophisticated AngelFerno incident to date. Attackers impersonated a senior CoW DAO contributor to Traficom (Finnish TLD registry) and Gandi (AWS Route 53's .fi registrar) using forged identity documents, altered company records, fabricated AWS support chat transcripts, and <strong>AI-generated financial documents</strong>. After the registrar-held email was changed at 12:16 UTC, the domain was transferred to NETIM, pointed at attacker Cloudflare nameservers, and a wildcard Let's Encrypt cert was issued. Users visiting cow.fi got a phishing replica served from LiteSpeed (distinct from CoW's Vercel stack) that harvested wallet connections and seed phrases via fake unlock modals.</p>
+        <div class="takeaway"><strong>SE relevance:</strong> AI-forged paperwork is now part of the playbook. Customers relying on registrar account hygiene alone are exposed — dApp scanning is the compensating control.</div>
+      </div>
+
+      <div class="card case">
+        <div class="idx">Case 04 · Apr 17, 2026</div>
+        <h3>eth.limo — Escalation to shared infrastructure</h3>
+        <div class="meta">
+          <span>Vector: EasyDNS registrar account compromise</span>
+          <span class="loss">Loss: none — blocked by DNSSEC</span>
+        </div>
+        <p>Attackers socially engineered eth.limo's EasyDNS account and pointed NS records first through Cloudflare, then to Namecheap-hosted attacker infrastructure. Because eth.limo publishes <strong>DNSSEC</strong>, validating resolvers returned SERVFAIL instead of the attacker's records. No user impact confirmed. The strategic significance: eth.limo is an <strong>ENS gateway</strong> — a successful hijack would have simultaneously weaponized every ENS-hosted frontend behind it. AngelFerno is now escalating from per-project targets to shared crypto infrastructure.</p>
+        <div class="takeaway"><strong>Talk track:</strong> "DNSSEC is the single control that saved eth.limo. &lt;1% of DeFi projects publish it. dApp scanning is the layer that catches it when they don't."</div>
+      </div>
+
+    </div>
+
+    <div class="callout warn">
+      <h3>What's new in the AngelFerno playbook</h3>
+      <p>Five confirmed hijacks against GoDaddy, Squarespace, Gandi (via Traficom), EasyDNS. AI-generated forgery is routine. Fallback phishing domains (e.g., swap.cow-s.fo on the Faroe Islands TLD) are pre-registered. Wildcard Let's Encrypt certs are issued within minutes. Blockaid's dApp scanning catches the drainer SDK regardless of how the user arrived at the page — the defense is resilient to any amount of registrar-side cleverness.</p>
+    </div>
+  </section>
+
+  <!-- =================== PART 2: PROTOCOL LAYER =================== -->
+
+  <h2 class="part"><span class="section-tag">Part 2 of 2</span>The Protocol Layer</h2>
+  <p class="muted" style="max-width:820px;">
+    Q1 2026 ended the narrative that "smart contracts are audited, so protocol hacks are solved." More than $577M was drained in two incidents alone, with structural gaps in off-chain operations, bridge verification, oracle configuration, and proxy governance. This section walks the four defining incidents and maps each to the Blockaid product that would have prevented it.
+  </p>
+
+  <section>
+    <h2><span class="section-tag">Case 05 · April 1, 2026</span>Drift Protocol — $285M</h2>
+    <p class="muted">Solana-based perpetuals DEX. Off-chain key compromise, not a smart-contract bug.</p>
+
+    <div class="grid-2">
+      <div class="card case">
+        <h3>What happened</h3>
+        <div class="meta">
+          <span>Vector: Squads multisig signer compromise</span>
+          <span class="loss">Loss: ~$285M (second-largest Solana hack ever)</span>
+          <span>Attribution: DPRK / Lazarus (same cluster as Radiant Oct 2024)</span>
+        </div>
+        <p>Drift's treasury was secured by a Squads multisig — the Solana equivalent of a Gnosis Safe. Attackers compromised enough signer devices (malware via fake job offers / poisoned dev tools) to hit the approval threshold. With valid signatures in hand, they submitted a single transaction draining three vaults. Complete in under one minute. Funds reached Binance within hours.</p>
+        <p class="muted" style="font-size:13px;">Chainalysis took ~9 hours to flag the transaction. Blockaid's pre-sign detection fires in ~0.3 seconds.</p>
+      </div>
+      <div class="card case">
+        <h3>How Blockaid would have prevented it</h3>
+        <span class="chip product">Product: Cosigner</span>
+        <p style="margin-top:10px;">Cosigner sits between the multisig and the blockchain. Before any signature is committed, it decodes the actual transaction bytes — not what the wallet UI claims — and checks: is the destination new, is the value abnormal, has this pattern ever been seen before? A transaction draining the entire treasury to a never-before-seen address would have been refused pre-signature.</p>
+        <div class="takeaway"><strong>The internal pitch:</strong> "Drift = why you need a cosigner on privileged key operations. Radiant Capital (Oct 2024) was the same group, same pattern, same fix."</div>
+      </div>
+    </div>
+    <div class="talk-track">
+      <strong>SE talk track:</strong> Anytime a prospect mentions a multisig, Fireblocks, Copper, BitGo, Squads, or any self-custodied treasury — open with Drift. "Your contracts are fine. The question is what happens when an attacker has the signatures."
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="section-tag">Case 06 · April 18, 2026</span>KelpDAO rsETH Bridge — $292M</h2>
+    <p class="muted">LayerZero-based cross-chain bridge. Infrastructure compromise at the verifier layer.</p>
+
+    <div class="grid-2">
+      <div class="card case">
+        <h3>What happened</h3>
+        <div class="meta">
+          <span>Vector: Compromised RPC + DDoS failover → forged cross-chain packet</span>
+          <span class="loss">Loss: ~$292M rsETH (largest DeFi hack of 2026)</span>
+          <span>Bad debt on Aave: ~$177M</span>
+        </div>
+        <p>KelpDAO's LayerZero bridge was configured with a <strong>1-of-1 DVN</strong> (Decentralized Verifier Network) — a single verifier with no backup signer. Attackers compromised two of the verifier's upstream RPC nodes, then DDoSed the primary to force failover onto the poisoned backup. With the verifier now reading attacker-controlled data, they sent a forged <code>lzReceive</code> packet claiming 116,500 rsETH had been locked on Ethereum. No lock had happened. The bridge released rsETH on 20+ destination chains — minting value from thin air. Attackers then posted the counterfeit rsETH as collateral on Aave, Compound, and Euler to borrow an additional $236M.</p>
+      </div>
+      <div class="card case">
+        <h3>How Blockaid would have prevented it</h3>
+        <span class="chip product">Product: Monitoring &amp; Risk Exposure</span>
+        <p style="margin-top:10px;">Bridge-layer monitoring reconciles the supply of a wrapped asset on destination chains against locked collateral on the origin chain. A 116,500-rsETH divergence with no matching deposit would have fired within seconds. For the lending protocols holding rsETH as collateral (Aave, Compound, Euler), a pause trigger on that anomaly would have blocked the downstream $236M bad-debt cascade.</p>
+        <div class="takeaway"><strong>The internal pitch:</strong> "KelpDAO = why every protocol that depends on a bridged asset needs independent bridge monitoring, and why 1-of-1 DVNs are negligence."</div>
+      </div>
+    </div>
+    <div class="talk-track">
+      <strong>SE talk track:</strong> Use KelpDAO with any protocol operating or depending on LayerZero, Wormhole, CCTP, or any cross-chain messaging. Also effective with lending markets — Aave's $8.45B TVL outflow in 48 hours is the contagion argument.
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="section-tag">Case 07 · February 15, 2026</span>Moonwell on Base — $918K</h2>
+    <p class="muted">Compound V2 fork on Base. Oracle feed misconfiguration.</p>
+
+    <div class="grid-2">
+      <div class="card case">
+        <h3>What happened</h3>
+        <div class="meta">
+          <span>Vector: Wrong Chainlink feed (cbETH/ETH ratio instead of cbETH/USD)</span>
+          <span class="loss">Loss: 468.63 ETH (~$918K)</span>
+          <span>Drain time: &lt;1 minute</span>
+        </div>
+        <p>Chainlink publishes two feeds for cbETH: a <strong>USD price feed</strong> (~$2,216) and an <strong>ETH ratio feed</strong> (~1.12). Moonwell's ChainlinkOracle was written for USD feeds only — no handling for ETH-denominated ratios. An admin pointed the cbETH feed at the ratio (1.12) instead of the USD price (2,216). The oracle reported cbETH as worth $1.12 — <strong>1,974x undervalued</strong>. Attacker flash-loaned $565 of WETH, deposited as collateral, borrowed $925,614 of cbETH (valued by the oracle at $468), swapped on Uniswap at real prices, repaid the flash loan, kept $918K.</p>
+      </div>
+      <div class="card case">
+        <h3>How Blockaid would have prevented it</h3>
+        <span class="chip product">Product: Monitoring &amp; Risk Exposure</span>
+        <p style="margin-top:10px;">Price sanity monitoring on lending markets fires on oracle values outside expected bands. "The cbETH oracle is returning $1.12" would be flagged within seconds — long before an attacker could complete 67 days of pre-positioning. Additionally, our pre-tx validation API correctly classified the real exploit transaction as <code>exploit_contract_execution</code> / severity severe.</p>
+        <div class="takeaway"><strong>The internal pitch:</strong> "Moonwell is the cleanest case for lending protocols. Not a novel attack. Not a smart-contract bug. An admin picked the wrong feed from a dropdown — the exact thing a sanity check catches."</div>
+      </div>
+    </div>
+    <div class="talk-track">
+      <strong>SE talk track:</strong> Use Moonwell with any lending market — Aave, Compound, Morpho, Silo, Euler, Radiant, Spark, Lista, Moonwell itself. Also any protocol that has admin-configurable price feeds. Pair with Rhea Finance ($7.6M, fake token oracle manipulation, Apr 16) and Blend on Stellar (Reflector oracle, Apr 2026) for pattern reinforcement.
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="section-tag">Case 08 · January 8 &amp; 27, 2026</span>Dinari usdPlus — Proxy Takeover</h2>
+    <p class="muted">Tokenized-stocks platform on Base. Uninitialized proxy front-run.</p>
+
+    <div class="grid-2">
+      <div class="card case">
+        <h3>What happened</h3>
+        <div class="meta">
+          <span>Vector: Uninitialized proxy + malicious spoofed-upgrade impl</span>
+          <span class="loss">Loss: Backdoor on usdPlus + 2 other proxies</span>
+          <span>Follow-up: 3 silent state-modification txs 3 weeks later</span>
+        </div>
+        <p>Dinari deployed proxy contracts without immediately calling <code>initialize()</code>. An attacker bot spotted the unclaimed proxy in the mempool, front-ran Dinari with their own <code>initialize()</code> call to become owner, and immediately upgraded the proxy to a malicious implementation. The sophisticated twist: the attacker's implementation was designed to <strong>spoof subsequent upgrade events</strong> — if Dinari tried to "fix" the proxy, the event logs would show a clean upgrade but storage would remain unchanged, leaving the backdoor live while appearing remediated.</p>
+      </div>
+      <div class="card case">
+        <h3>How Blockaid would have prevented it</h3>
+        <span class="chip product">Product: Cosigner + Monitoring</span>
+        <p style="margin-top:10px;">Cosigner inspects privileged transactions including <code>initialize()</code> and <code>upgradeTo()</code>. Any <code>initialize()</code> call from an address with no prior relationship to the protocol, or any upgrade pointing at an unverified freshly-deployed implementation, would be refused pre-signature. Separately, our proxy-upgrade monitoring tracks EIP-1967 implementation slots and fires on storage changes that don't match emitted events — the spoofed-upgrade trick.</p>
+        <div class="takeaway"><strong>The internal pitch:</strong> "Dinari is the textbook 2026 proxy hack. Same shape as Parity 2017, but with a spoofed-upgrade layer that would fool any team relying on Etherscan events to verify remediation."</div>
+      </div>
+    </div>
+    <div class="talk-track">
+      <strong>SE talk track:</strong> Use Dinari with any protocol using upgradeable contracts — which is most of them. Pair with Radiant Capital (Oct 2024, same Lazarus cluster as Drift) for the signer-compromise version of the same story.
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="section-tag">Supporting cases</span>Recent Oracle &amp; Validation Layer Incidents</h2>
+    <p class="muted">Not the headlines, but useful reinforcement for the pattern. All caught or detectable by Blockaid's pre-tx validation and monitoring.</p>
+
+    <div class="grid-3" style="margin-top:18px;">
+      <div class="card">
+        <div class="idx">Apr 16, 2026</div>
+        <h3>Rhea Finance (NEAR)</h3>
+        <p>Attacker deployed fake token contracts and seeded malicious liquidity pools. The protocol's oracle and validation layer accepted the fake tokens as valuable collateral, enabling ~$7.6M in drains.</p>
+      </div>
+      <div class="card">
+        <div class="idx">Apr 19, 2026</div>
+        <h3>Balancer V2 / Gyro ECLP (Base)</h3>
+        <p>Permissionless pool registration + attacker-controlled rate provider. Attacker extracting $5–15K per tx, still live against ~$252K remaining extractable liquidity at time of writing.</p>
+      </div>
+      <div class="card">
+        <div class="idx">Apr 6, 2026</div>
+        <h3>Credifi / Euler v2</h3>
+        <p>Fake oracle contract told an Euler vault "14,060 eCREDIT = 14,060 USDC" to bypass the health check. Textbook "protocol trusted the wrong oracle" pattern.</p>
+      </div>
+      <div class="card">
+        <div class="idx">Apr 2026</div>
+        <h3>Blend Protocol (Stellar)</h3>
+        <p>Reflector oracle manipulation. Exploiter deposited 149,876 USTRY valued at 100x, borrowed 1M USDC + 61.2M XLM against it.</p>
+      </div>
+      <div class="card">
+        <div class="idx">Mar 29, 2026</div>
+        <h3>Seamless USDC Vault</h3>
+        <p>Oracle manipulation during the USR stablecoin depeg. A reminder that depeg events are oracle-manipulation attack windows.</p>
+      </div>
+      <div class="card">
+        <div class="idx">Multiple</div>
+        <h3>Noir / Pink / Purple drainers</h3>
+        <p>Tier-1/2 drainer families. Noir expanded from Solana to EVM on Mar 7 claiming an active MetaMask bypass. Pink ($85M+ historic) resurfaced with fund movement in March.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== DETECTION ARCHITECTURE =================== -->
+
+  <h2 class="part"><span class="section-tag">Architecture</span>The Five Detection Layers</h2>
+  <p class="muted" style="max-width:820px;">
+    No single layer covers the full surface. Blockaid's defense is a set of reinforcing checks across the user, the dApp, the transaction, the protocol, and the asset. Each layer closes blind spots the others leave open.
+  </p>
+
+  <div class="pillars" style="margin-top:22px;">
+    <div class="pillar">
+      <h3>Transaction Scanning</h3>
+      <p class="muted" style="margin-bottom:0;">Simulates the actual effects of a signature — asset diffs, approvals, exposures, exit paths — rather than parsing calldata.</p>
+      <ul class="tight">
+        <li>Catches raw transfers, approvals, permits, arbitrary-recipient contracts.</li>
+        <li>Covers on-chain transactions and off-chain EIP-712 messages.</li>
+        <li>Reputation context on every address and token involved.</li>
+      </ul>
+    </div>
+    <div class="pillar">
+      <h3>dApp Scanning</h3>
+      <p class="muted" style="margin-bottom:0;">Evaluates the site — JavaScript fingerprints, network behavior, brand-impersonation signals — before any transaction is signed.</p>
+      <ul class="tight">
+        <li>Flags drainer-SDK reuse across thousands of sites.</li>
+        <li>Catches DNS hijacks of legitimate domains (see AngelFerno).</li>
+        <li>Surfaces malicious dApps even when the tx they emit looks clean.</li>
+      </ul>
+    </div>
+    <div class="pillar">
+      <h3>Cosigner</h3>
+      <p class="muted" style="margin-bottom:0;">Independent inspection of privileged transactions before they're signed by a multisig or custody stack.</p>
+      <ul class="tight">
+        <li>Decodes actual transaction bytes, not what the wallet UI claims.</li>
+        <li>Blocks upgrade-to-malicious-impl, drain-to-new-address, and unauthorized privilege grants.</li>
+        <li>Integrations: Fireblocks, Safe, Squads, BitGo, Copper, custom.</li>
+      </ul>
+    </div>
+    <div class="pillar">
+      <h3>Monitoring &amp; Risk Exposure</h3>
+      <p class="muted" style="margin-bottom:0;">Continuous surveillance of protocol state — oracles, bridges, liquidity, admin actions.</p>
+      <ul class="tight">
+        <li>Oracle price sanity bands (see Moonwell).</li>
+        <li>Bridge supply/lock reconciliation (see KelpDAO).</li>
+        <li>Admin-action alerts and automated pause triggers.</li>
+      </ul>
+    </div>
+    <div class="pillar">
+      <h3>Token Scanning</h3>
+      <p class="muted" style="margin-bottom:0;">Rug-pull, honeypot, and malicious-token detection on the asset itself.</p>
+      <ul class="tight">
+        <li>Admin powers, unlocked LP, concentrated supply, unverified code.</li>
+        <li>Honeypot simulation (can the token actually be sold?).</li>
+        <li>Consumed by major wallets and exchange listing flows.</li>
+      </ul>
+    </div>
+    <div class="pillar">
+      <h3>Threat Intel Feed</h3>
+      <p class="muted" style="margin-bottom:0;">The input that keeps all five layers current.</p>
+      <ul class="tight">
+        <li>Drainer family tracking (AngelFerno, RublevkaTeam, Purple, Quark, Noir, Impala).</li>
+        <li>DNS hijack campaigns, frontend compromises, IOC publication.</li>
+        <li>Proactive notifications to affected partners (see Steakhouse, OpenEden).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <h3>The feedback loop</h3>
+    <p>When a known-malicious dApp emits a transaction that looks benign, we investigate a potential transaction-rule bypass. When a reputable dApp emits a transaction that looks malicious, we investigate a potential compromise. When a legitimate protocol's privileged transaction triggers a cosigner refusal, we investigate a potential key compromise. The combination is what keeps pace with weekly drainer iteration and quarterly protocol-hack waves.</p>
+  </div>
+
+  <!-- =================== SE PLAYBOOK =================== -->
+
+  <h2 class="part"><span class="section-tag">SE playbook</span>Which Hack for Which Prospect</h2>
+  <p class="muted" style="max-width:820px;">
+    Each row maps a prospect profile to the most resonant case study and the Blockaid product to lead with. Use these as opening hooks in discovery calls and outbound.
+  </p>
+
+  <table class="playbook">
+    <thead>
+      <tr>
+        <th style="width:22%;">Prospect profile</th>
+        <th style="width:22%;">Lead case study</th>
+        <th style="width:18%;">Product</th>
+        <th>Opening line</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Wallet / self-custody app</strong></td>
+        <td>AngelFerno DNS hijacks (CoW Swap $1.2M)</td>
+        <td><span class="chip product">Tx + dApp Scanning</span></td>
+        <td>"Your users type in the right URL and still get drained. What's your story for that?"</td>
+      </tr>
+      <tr>
+        <td><strong>DEX / exchange with a frontend</strong></td>
+        <td>CoW Swap + eth.limo</td>
+        <td><span class="chip product">dApp Scanning</span></td>
+        <td>"Your brand is the target. Registrar security alone lost CoW $1.2M of user funds."</td>
+      </tr>
+      <tr>
+        <td><strong>Protocol with multisig treasury</strong></td>
+        <td>Drift ($285M)</td>
+        <td><span class="chip product">Cosigner</span></td>
+        <td>"Your contracts are fine. What happens when your signers' laptops are compromised?"</td>
+      </tr>
+      <tr>
+        <td><strong>Fireblocks / custodial platform</strong></td>
+        <td>Drift + Radiant</td>
+        <td><span class="chip product">Cosigner</span></td>
+        <td>"Same Lazarus cluster, same attack shape, two different protocols, $335M total. Cosigner is the compensating control."</td>
+      </tr>
+      <tr>
+        <td><strong>Bridge operator</strong></td>
+        <td>KelpDAO ($292M)</td>
+        <td><span class="chip product">Monitoring</span></td>
+        <td>"1-of-1 DVN configurations are negligence. Supply/lock reconciliation would have fired in seconds."</td>
+      </tr>
+      <tr>
+        <td><strong>Lending protocol</strong></td>
+        <td>Moonwell ($918K) + KelpDAO bad-debt contagion</td>
+        <td><span class="chip product">Monitoring</span></td>
+        <td>"An admin picked the wrong Chainlink feed from a dropdown. Oracle sanity monitoring catches that in seconds."</td>
+      </tr>
+      <tr>
+        <td><strong>Protocol w/ upgradeable contracts</strong></td>
+        <td>Dinari + Radiant</td>
+        <td><span class="chip product">Cosigner + Monitoring</span></td>
+        <td>"Your upgrade admin is your single most valuable target. Cosigner decodes what the upgrade actually does before it's signed."</td>
+      </tr>
+      <tr>
+        <td><strong>Stablecoin / RWA issuer</strong></td>
+        <td>Dinari (usdPlus)</td>
+        <td><span class="chip product">Cosigner + Monitoring</span></td>
+        <td>"Your token proxy is a $N-million honeypot. A spoofed upgrade leaves no clean forensics trail — only active monitoring catches it."</td>
+      </tr>
+      <tr>
+        <td><strong>Centralized exchange listing team</strong></td>
+        <td>Noir drainer + Pink resurfacing</td>
+        <td><span class="chip product">Token Scanning</span></td>
+        <td>"Your users are buying malicious tokens on your platform. Token scanning is a one-integration fix."</td>
+      </tr>
+      <tr>
+        <td><strong>LayerZero-dependent project</strong></td>
+        <td>KelpDAO</td>
+        <td><span class="chip product">Monitoring</span></td>
+        <td>"LayerZero has publicly stopped signing for 1-of-1 configs. If you rely on any LayerZero-bridged asset, you need independent monitoring on the asset supply."</td>
+      </tr>
+      <tr>
+        <td><strong>TradFi / bank / payments</strong></td>
+        <td>Drift + KelpDAO combined</td>
+        <td><span class="chip product">Cosigner + Monitoring</span></td>
+        <td>"Every crypto operation at a regulated institution needs two controls: cosigner on privileged ops, monitoring on any bridged asset."</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <h3>The two-hacks, two-gaps message (Ido's line)</h3>
+    <p>Drift = why you need a cosigner on privileged key operations. KelpDAO = why you need bridge / asset monitoring. Both = protocols running production-grade smart contracts while operating off-chain security at a fraction of the rigor those contracts deserve. Blockaid is how you close both.</p>
+  </div>
+
+  <!-- =================== WALLET TEAM GUIDANCE (preserved) =================== -->
+
+  <section>
+    <h2><span class="section-tag">Appendix</span>What This Means for a Wallet Team</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h3>Simulation is not optional</h3>
+        <p class="muted" style="margin:0;font-size:14.5px;">A calldata-only view cannot distinguish an empty transfer to a malicious EOA from a benign send, cannot surface off-chain permit risk, and cannot catch stealthy contract patterns. Simulation is the baseline for meaningful user warnings.</p>
+      </div>
+      <div class="card">
+        <h3>Reputation scales where rules don't</h3>
+        <p class="muted" style="margin:0;font-size:14.5px;">Drainer kits change weekly; reputation signals accumulated across millions of wallet interactions do not. The breadth of Blockaid's integrations is a direct input into detection quality.</p>
+      </div>
+      <div class="card">
+        <h3>Both layers, or neither</h3>
+        <p class="muted" style="margin:0;font-size:14.5px;">Shipping transaction scanning without dApp scanning (or vice versa) leaves coverage gaps that drainers actively exploit. The two should be deployed as a package.</p>
+      </div>
+      <div class="card">
+        <h3>Feedback matters</h3>
+        <p class="muted" style="margin:0;font-size:14.5px;">A reporting endpoint for false positives and false negatives is part of the product. User- and integrator-reported cases feed directly into our threat intel pipeline.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div>Blockaid — SE Enablement · Threat Landscape · Apr 2026</div>
+    <div>Internal reference · Do not distribute externally without review</div>
+  </footer>
+
+</div>
+</body>
+</html>
