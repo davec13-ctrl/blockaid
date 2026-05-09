@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blackfort — Call Prep</title>
+<style>
+  :root {
+    --ink: #1a1f2e;
+    --ink-soft: #4a5468;
+    --ink-faint: #7a8499;
+    --line: #e5e8ef;
+    --bg: #fafbfc;
+    --card: #ffffff;
+    --accent: #2563eb;
+    --accent-soft: #eff4ff;
+    --discovery: #2563eb;
+    --education: #9333ea;
+    --discovery-bg: #eff4ff;
+    --education-bg: #f5edff;
+    --warn: #b45309;
+    --warn-bg: #fef6e7;
+    --done: #047857;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0;
+    padding: 32px 24px;
+    line-height: 1.5;
+  }
+
+  .wrap { max-width: 880px; margin: 0 auto; }
+
+  header.deal {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+  }
+
+  .deal-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .meta {
+    font-size: 13px;
+    color: var(--ink-faint);
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+
+  .fact-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    margin-bottom: 2px;
+  }
+
+  .fact-value {
+    font-size: 13px;
+    color: var(--ink);
+  }
+
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    margin: 28px 0 12px;
+    font-weight: 600;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin-bottom: 14px;
+    display: flex;
+    gap: 18px;
+  }
+
+  .card-num {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--discovery-bg);
+    color: var(--discovery);
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+
+  .card.education .card-num {
+    background: var(--education-bg);
+    color: var(--education);
+  }
+
+  .card-body { flex: 1; min-width: 0; }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: var(--discovery-bg);
+    color: var(--discovery);
+    margin-bottom: 8px;
+  }
+
+  .card.education .tag {
+    background: var(--education-bg);
+    color: var(--education);
+  }
+
+  .question {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink);
+    margin: 0 0 14px;
+    line-height: 1.45;
+  }
+
+  .question.bridge {
+    margin-bottom: 8px;
+  }
+
+  .listen-block {
+    background: #f7f8fa;
+    border-left: 3px solid var(--ink-faint);
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    margin-top: 12px;
+  }
+
+  .listen-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .listen-text {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  .pivot {
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    margin-top: 12px;
+  }
+
+  .pivot-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .pivot-text {
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .sub {
+    font-size: 13px;
+    color: var(--ink-faint);
+    margin: 14px 0 6px;
+    font-weight: 600;
+  }
+
+  .closing {
+    background: var(--warn-bg);
+    border: 1px solid #f3d896;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-top: 24px;
+  }
+
+  .closing h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    color: var(--warn);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .closing ul {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--ink);
+  }
+
+  .closing li {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .principle {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 24px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+
+  .principle strong { color: var(--ink); }
+
+  footer {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 12px;
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+  }
+
+  @media print {
+    body { background: white; padding: 0; }
+    .card { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="deal">
+    <div class="deal-row">
+      <h1>Blackfort Wallet — Call Prep</h1>
+      <span class="meta">Internal checkride · 30 min</span>
+    </div>
+    <div style="font-size: 13px; color: var(--ink-soft);">
+      Goal: align on the technical fit, identify the buying committee, walk out with a POV scope on Cosigner.
+    </div>
+    <div class="facts">
+      <div>
+        <div class="fact-label">Treasury</div>
+        <div class="fact-value">~$10M EVM, expanding to Solana</div>
+      </div>
+      <div>
+        <div class="fact-label">Custody</div>
+        <div class="fact-value">Fireblocks</div>
+      </div>
+      <div>
+        <div class="fact-label">DEX protocol</div>
+        <div class="fact-value">Gnosis Safe (separate team)</div>
+      </div>
+      <div>
+        <div class="fact-label">Approval cycle</div>
+        <div class="fact-value">~2 days (CISO + Compliance)</div>
+      </div>
+      <div>
+        <div class="fact-label">Risk appetite</div>
+        <div class="fact-value">Considering memecoins</div>
+      </div>
+      <div>
+        <div class="fact-label">Competition</div>
+        <div class="fact-value">Hexagate (Chainalysis)</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="principle">
+    <strong>Principle for the call:</strong> the discovery questions force them to <em>enumerate their defenses out loud</em>. They will run out of layers before they reach the one only Blockaid provides. Don't pitch — let the silence do the work. Education moments come <strong>after</strong> they've felt the gap.
+  </div>
+
+  <div class="section-label">Sequence</div>
+
+  <!-- Question 1 -->
+  <div class="card">
+    <div class="card-num">1</div>
+    <div class="card-body">
+      <div class="tag">Discovery · ByBit walkthrough</div>
+      <p class="question">"If a ByBit-style attack hit you tomorrow — your Fireblocks UI is compromised, signers approve what looks routine but it's actually an owner change — walk me through every layer that catches it before signing."</p>
+      <div class="listen-block">
+        <div class="listen-label">Listen for</div>
+        <div class="listen-text">They'll start with Fireblocks policies and CISO review. Let them. Notice when they run out of layers — nothing simulates the transaction at the moment of co-signing. <strong>That silence is where Cosigner sells itself.</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question 2a -->
+  <div class="card">
+    <div class="card-num">2a</div>
+    <div class="card-body">
+      <div class="tag">Discovery · 2-day process</div>
+      <p class="question">"Walk me through the last transaction that took the full 2 days. What were the CISO and compliance actually checking, and what tools did they use?"</p>
+      <div class="listen-block">
+        <div class="listen-label">Listen for</div>
+        <div class="listen-text">The review is mostly judgment, not informed verification. Probably reading raw calldata, trusting descriptions, pattern-matching. This is the augmentation pitch — Cosigner gives them automated verification so the human review focuses on the 2% that's actually risky.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question 2b -->
+  <div class="card">
+    <div class="card-num">2b</div>
+    <div class="card-body">
+      <div class="tag">Discovery · Solana scale</div>
+      <p class="question">"When you go live on Solana, transaction frequency is going to spike. How does the 2-day process scale — and what changes if it doesn't?"</p>
+      <div class="listen-block">
+        <div class="listen-label">Listen for</div>
+        <div class="listen-text">It doesn't scale. They know it. This makes Cosigner operationally required, not optional. Also surfaces Solana go-live timeline — get the date. Solana is our biggest wedge against Hexagate.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question 3 -->
+  <div class="card education">
+    <div class="card-num">3</div>
+    <div class="card-body">
+      <div class="tag">Bridge → Education · Safe / DEX</div>
+      <p class="question bridge">Bridge: <em>"If the Safe front-end your DEX team uses got MITM'd tomorrow, what catches the bad transaction before signing?"</em></p>
+      <div class="pivot">
+        <div class="pivot-label">Then pivot to education</div>
+        <div class="pivot-text">"To be clear — we're not replacing Safe's UI. We sit alongside it. Every transaction gets simulated and verified independently, so even if the front-end lies, the signer sees the truth."</div>
+      </div>
+      <div class="listen-block">
+        <div class="listen-label">Listen for</div>
+        <div class="listen-text">The DEX team rep — different buyer, different motion. Get their name and follow up separately. Note any specific incident that made them raise the Safe UI fear.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question 4 -->
+  <div class="card education">
+    <div class="card-num">4</div>
+    <div class="card-body">
+      <div class="tag">Bridge → Education · Memecoins</div>
+      <p class="question bridge">Bridge: <em>"When the team allocates to a memecoin, who decides the token is safe to hold? What signals do they look at?"</em></p>
+      <div class="pivot">
+        <div class="pivot-label">Then pivot to education</div>
+        <div class="pivot-text">"Token scanning runs at the cosigner moment — honeypot patterns, mint and freeze authority, holder concentration, contract risk. The swap doesn't go through if the token fails the scan."</div>
+      </div>
+      <div class="listen-block">
+        <div class="listen-label">Listen for</div>
+        <div class="listen-text">Usually nobody owns this. Don't moralize about memecoin strategy — frame as risk mitigation if they're going to do it anyway. Connects naturally to Solana (memecoin chain).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question 5 -->
+  <div class="card">
+    <div class="card-num">5</div>
+    <div class="card-body">
+      <div class="tag">Discovery · Hexagate wedge</div>
+      <p class="question">"Hexagate is solid for monitoring after the fact. But at the moment your CISO is staring at a raw transaction in Fireblocks deciding whether to approve — what does Hexagate show her?"</p>
+      <div class="listen-block">
+        <div class="listen-label">Listen for</div>
+        <div class="listen-text">They won't have a clean answer. Hexagate is monitoring-first; they don't sit in the cosigning flow. Push for parallel POV: <em>"Run us both, compare what each catches."</em> We win on simulation depth, token scanning, wallet-flow signals, and Solana coverage.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Question 6 -->
+  <div class="card">
+    <div class="card-num">6</div>
+    <div class="card-body">
+      <div class="tag">Discovery · Decision process</div>
+      <p class="question">"If we walk out of this evaluation aligned on the technical fit — who else needs to be in the room before this gets signed, and what's their criteria?"</p>
+      <div class="listen-block">
+        <div class="listen-label">Listen for</div>
+        <div class="listen-text">Maps the buying committee. Identifies the economic buyer. Avoids the "great POV, six months of silence" trap. Treasury, DEX, and wallet may be three different buyers — find out now.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="closing">
+    <h3>Walk-out checklist</h3>
+    <ul>
+      <li>Solana go-live timeline confirmed</li>
+      <li>Buying committee names captured (CISO, compliance, DEX lead, wallet product lead)</li>
+      <li>Hexagate stage understood (pre-POV, mid-POV, near-signature)</li>
+      <li>Fireblocks workspace setup and tx volume scoped</li>
+      <li>Agreed next step: Cosigner POV scope, with Safe + wallet as fast-follows</li>
+    </ul>
+  </div>
+
+  <div class="section-label">If they push back</div>
+  <div class="card">
+    <div class="card-body">
+      <div class="sub">"We already have Hexagate"</div>
+      <div class="listen-text" style="font-size: 13px; color: var(--ink-soft);">
+        "Great — keep them. We solve a different problem. They watch your contracts; we sit in the signing flow. Run us in parallel during your Solana rollout and compare what each catches."
+      </div>
+
+      <div class="sub" style="margin-top: 16px;">"Our CISO won't accept removing the human review"</div>
+      <div class="listen-text" style="font-size: 13px; color: var(--ink-soft);">
+        "We're not removing it — we're giving her better information. Auto-approve the routine 80%, flag the 2% that needs her attention. Throughput goes up, blind-signing risk goes down."
+      </div>
+
+      <div class="sub" style="margin-top: 16px;">"We're a wallet company — what do you do for our users?"</div>
+      <div class="listen-text" style="font-size: 13px; color: var(--ink-soft);">
+        Acknowledge, then refocus: "Two separate conversations — happy to bring our wallet product lead in for that one. Today let's stay on the treasury and protocol side, since that's the ByBit risk you raised."
+      </div>
+    </div>
+  </div>
+
+  <footer>Blackfort prep · Cosigner-led motion · ByBit narrative · Solana wedge · 6 moves in 30 min</footer>
+
+</div>
+</body>
+</html>
