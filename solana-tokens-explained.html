@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solana Tokens — A Plain-English Guide</title>
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --ink: #1a1a1a;
+    --ink-soft: #4a4a4a;
+    --ink-muted: #6b6b6b;
+    --accent: #14b8a6;
+    --accent-soft: #ccfbf1;
+    --warn: #ea580c;
+    --warn-soft: #ffedd5;
+    --danger: #dc2626;
+    --danger-soft: #fee2e2;
+    --good: #16a34a;
+    --good-soft: #dcfce7;
+    --border: #e5e5e0;
+    --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 56px 28px 80px;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+  .eyebrow {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.6px;
+    color: var(--accent);
+    text-transform: uppercase;
+    background: var(--accent-soft);
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.15;
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+  }
+  .subtitle {
+    font-size: 18px;
+    color: var(--ink-muted);
+    max-width: 580px;
+    margin: 0 auto;
+  }
+  section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 40px;
+    margin-bottom: 24px;
+    box-shadow: var(--shadow);
+  }
+  h2 {
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0 0 20px;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 24px 0 8px;
+    color: var(--ink);
+  }
+  p { margin: 0 0 16px; color: var(--ink-soft); }
+  .diagram-wrap {
+    background: #f5f5f0;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+  }
+  .diagram-wrap svg {
+    display: block;
+    margin: 0 auto;
+    max-width: 100%;
+    height: auto;
+  }
+  .caption {
+    text-align: center;
+    font-size: 14px;
+    color: var(--ink-muted);
+    font-style: italic;
+    margin-top: 8px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .card {
+    background: #fafaf7;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+  .card h4 {
+    margin: 0 0 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-muted);
+    line-height: 1.5;
+  }
+  .badge {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .badge.warn { background: var(--warn); }
+  .badge.danger { background: var(--danger); }
+  .badge.good { background: var(--good); }
+  .risk-row {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 16px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .risk-row:last-child { border-bottom: none; }
+  .risk-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .risk-icon.high { background: var(--danger-soft); color: var(--danger); }
+  .risk-icon.med { background: var(--warn-soft); color: var(--warn); }
+  .risk-icon.low { background: var(--good-soft); color: var(--good); }
+  .risk-content h4 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .risk-content p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-muted);
+  }
+  .layer {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 14px;
+    padding: 16px 18px;
+    background: #fafaf7;
+    border-radius: 10px;
+    border-left: 3px solid var(--accent);
+  }
+  .layer-num {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .layer-content h4 {
+    margin: 0 0 4px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .layer-content p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-muted);
+  }
+  .takeaway {
+    background: linear-gradient(135deg, #ccfbf1 0%, #f0fdfa 100%);
+    border: 1px solid var(--accent);
+    border-radius: 12px;
+    padding: 24px 28px;
+  }
+  .takeaway h3 {
+    margin-top: 0;
+    color: #0f766e;
+  }
+  .takeaway p {
+    color: #134e4a;
+    margin-bottom: 0;
+  }
+  footer {
+    text-align: center;
+    margin-top: 40px;
+    color: var(--ink-muted);
+    font-size: 13px;
+  }
+  @media (max-width: 600px) {
+    .wrap { padding: 32px 16px 60px; }
+    section { padding: 24px 20px; }
+    h1 { font-size: 32px; }
+    h2 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <span class="eyebrow">Solana 101</span>
+    <h1>Solana Tokens, Explained Simply</h1>
+    <p class="subtitle">A plain-English guide to how tokens work on Solana, who has control, and what happens when things go wrong.</p>
+  </header>
+
+  <section>
+    <h2>The Architecture at a Glance</h2>
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 800 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Solana token architecture diagram">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/>
+          </marker>
+        </defs>
+        <style>
+          .box { fill: #ffffff; stroke: #1a1a1a; stroke-width: 2; }
+          .box-shadow { fill: #1a1a1a; opacity: 0.08; }
+          .label { font: 600 14px -apple-system, sans-serif; fill: #1a1a1a; text-anchor: middle; }
+          .role-label { font: 600 12px -apple-system, sans-serif; fill: #1a1a1a; text-anchor: middle; }
+          .edge-label { font: 500 11px -apple-system, sans-serif; fill: #4a4a4a; text-anchor: middle; }
+          .edge { stroke: #1a1a1a; stroke-width: 1.5; fill: none; }
+          .person { stroke: #1a1a1a; stroke-width: 1.8; fill: #ffffff; }
+        </style>
+
+        <!-- Top: Mint authority and Freeze authority -->
+        <!-- Mint authority person -->
+        <circle cx="430" cy="50" r="14" class="person"/>
+        <path d="M 416 70 Q 416 90 422 100 L 438 100 Q 444 90 444 70 Z" class="person"/>
+        <text x="430" y="125" class="role-label">Mint authority</text>
+        <text x="430" y="158" class="edge-label">Can mint tokens</text>
+
+        <!-- Freeze authority person -->
+        <circle cx="600" cy="50" r="14" class="person"/>
+        <path d="M 586 70 Q 586 90 592 100 L 608 100 Q 614 90 614 70 Z" class="person"/>
+        <text x="600" y="125" class="role-label">Freeze authority</text>
+        <text x="600" y="158" class="edge-label">Freeze tokens</text>
+
+        <!-- Arrows from authorities down to mint account -->
+        <path d="M 430 165 L 460 215" class="edge" marker-end="url(#arrow)"/>
+        <path d="M 600 165 L 570 215" class="edge" marker-end="url(#arrow)"/>
+
+        <!-- Token program box -->
+        <rect x="60" y="240" width="200" height="60" rx="4" class="box"/>
+        <text x="160" y="275" class="label">Token program</text>
+
+        <!-- Token mint account box -->
+        <rect x="395" y="220" width="240" height="70" rx="4" class="box"/>
+        <text x="515" y="260" class="label">Token mint account</text>
+
+        <!-- Token program owns mint account -->
+        <path d="M 260 265 Q 330 265 395 250" class="edge" marker-end="url(#arrow)"/>
+        <text x="328" y="252" class="edge-label">owns</text>
+
+        <!-- Token account box -->
+        <rect x="395" y="430" width="240" height="70" rx="4" class="box"/>
+        <text x="515" y="470" class="label">Token account</text>
+
+        <!-- Token program owns token account (curved) -->
+        <path d="M 160 305 Q 160 430 395 470" class="edge" marker-end="url(#arrow)"/>
+        <text x="225" y="395" class="edge-label">owns</text>
+
+        <!-- Token account refers to mint account -->
+        <path d="M 515 430 L 515 295" class="edge" marker-end="url(#arrow)"/>
+        <text x="555" y="365" class="edge-label">refers to</text>
+
+        <!-- Bottom: Token owner, Close authority, Delegate -->
+        <!-- Token owner -->
+        <circle cx="370" cy="610" r="14" class="person"/>
+        <path d="M 356 630 Q 356 650 362 660 L 378 660 Q 384 650 384 630 Z" class="person"/>
+        <text x="370" y="685" class="role-label">Token owner</text>
+
+        <!-- Close authority -->
+        <circle cx="515" cy="610" r="14" class="person"/>
+        <path d="M 501 630 Q 501 650 507 660 L 523 660 Q 529 650 529 630 Z" class="person"/>
+        <text x="515" y="685" class="role-label">Close authority</text>
+
+        <!-- Delegate -->
+        <circle cx="660" cy="610" r="14" class="person"/>
+        <path d="M 646 630 Q 646 650 652 660 L 668 660 Q 674 650 674 630 Z" class="person"/>
+        <text x="660" y="685" class="role-label">Delegate</text>
+
+        <!-- Arrows from people to token account -->
+        <path d="M 370 595 Q 380 540 460 500" class="edge" marker-end="url(#arrow)"/>
+        <text x="395" y="555" class="edge-label">Owns tokens</text>
+
+        <path d="M 515 595 L 515 500" class="edge" marker-end="url(#arrow)"/>
+        <text x="555" y="555" class="edge-label">Can close</text>
+
+        <path d="M 660 595 Q 650 540 580 500" class="edge" marker-end="url(#arrow)"/>
+        <text x="640" y="555" class="edge-label">Can spend</text>
+
+      </svg>
+      <div class="caption">A token's "anatomy" on Solana: a program, two account types, and five roles.</div>
+    </div>
+
+    <p>Think of this as a <strong>bank for digital tokens</strong>. The Token Program is the bank itself — it sets the rules. The two account types are different kinds of records the bank keeps. And the people are roles with specific permissions.</p>
+  </section>
+
+  <section>
+    <h2>The Building Blocks</h2>
+    <p>Every Solana token is built from these pieces. Here's what each one does in everyday language.</p>
+
+    <div class="grid">
+      <div class="card">
+        <h4><span class="badge"></span> Token Program</h4>
+        <p>The institution that runs the show. Sets the rules for how all tokens work — who can mint, transfer, freeze, etc. One Token Program serves every token on Solana.</p>
+      </div>
+      <div class="card">
+        <h4><span class="badge"></span> Token Mint Account</h4>
+        <p>The "headquarters" for one specific token. Defines what the token is, how many exist, and its basic properties. One per token type (USDC, BONK, etc.).</p>
+      </div>
+      <div class="card">
+        <h4><span class="badge"></span> Token Account</h4>
+        <p>Your personal wallet for one specific token. To hold USDC and BONK, you need two separate token accounts. Each one points back to its mint account.</p>
+      </div>
+      <div class="card">
+        <h4><span class="badge good"></span> Mint Authority</h4>
+        <p>The only entity that can create new tokens. Like a central bank with a printing press.</p>
+      </div>
+      <div class="card">
+        <h4><span class="badge warn"></span> Freeze Authority</h4>
+        <p>Can freeze any wallet holding the token, preventing transfers. Useful for stablecoins; dangerous in the wrong hands.</p>
+      </div>
+      <div class="card">
+        <h4><span class="badge"></span> Token Owner</h4>
+        <p>You. Holds the tokens in a token account and can spend them.</p>
+      </div>
+      <div class="card">
+        <h4><span class="badge"></span> Close Authority</h4>
+        <p>Can shut down a token account when it's empty and no longer needed (and reclaim the small SOL deposit).</p>
+      </div>
+      <div class="card">
+        <h4><span class="badge"></span> Delegate</h4>
+        <p>Like limited power of attorney — can spend up to a set amount on the owner's behalf. Common when interacting with apps.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What Happens If a Bad Actor Gets Control?</h2>
+    <p>Each role carries a different blast radius. Some compromises affect one user; others can wipe out an entire token.</p>
+
+    <div class="risk-row">
+      <div class="risk-icon high">!</div>
+      <div class="risk-content">
+        <h4>Mint Authority Compromised — Catastrophic</h4>
+        <p>Attacker prints unlimited tokens, dumps them on exchanges, and crashes the price to near zero. Token holders are left with worthless bags. Known as an "infinite mint attack."</p>
+      </div>
+    </div>
+    <div class="risk-row">
+      <div class="risk-icon high">!</div>
+      <div class="risk-content">
+        <h4>Freeze Authority Compromised — Severe</h4>
+        <p>Attacker can freeze any wallet, locking funds in place. Could be used for extortion, targeted attacks, or to make the token entirely unusable.</p>
+      </div>
+    </div>
+    <div class="risk-row">
+      <div class="risk-icon med">!</div>
+      <div class="risk-content">
+        <h4>Token Owner Key Stolen — Bad for One User</h4>
+        <p>The classic wallet hack. Attacker drains that wallet, but other holders are unaffected. Hardware wallets and good security hygiene are the defenses here.</p>
+      </div>
+    </div>
+    <div class="risk-row">
+      <div class="risk-icon med">!</div>
+      <div class="risk-content">
+        <h4>Delegate Compromised — Limited</h4>
+        <p>Damage capped at whatever was delegated. But "unlimited approvals" to apps are common and dangerous — a compromised app can drain everything you approved.</p>
+      </div>
+    </div>
+    <div class="risk-row">
+      <div class="risk-icon low">i</div>
+      <div class="risk-content">
+        <h4>Close Authority Compromised — Limited</h4>
+        <p>Can force-close empty accounts. Annoying and can grief users, but doesn't directly steal funds.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>How Solana Defends Against Mint Attacks</h2>
+    <p>Solana itself doesn't block minting — that's a legitimate feature. Protection comes from a stack of practices and tools projects use on top.</p>
+
+    <div class="layer">
+      <div class="layer-num">1</div>
+      <div class="layer-content">
+        <h4>Renounce the Mint Authority</h4>
+        <p>Set the authority to "None" — permanently, irreversibly. The printing press is destroyed. Most fixed-supply tokens do this. Infinite mint attack becomes mathematically impossible.</p>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer-num">2</div>
+      <div class="layer-content">
+        <h4>Multi-Signature Wallets</h4>
+        <p>For tokens that must keep minting active (stablecoins), the authority is held by a multi-sig requiring 3-of-5 or similar. An attacker has to compromise multiple independent people at once.</p>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer-num">3</div>
+      <div class="layer-content">
+        <h4>Timelocks</h4>
+        <p>Even after a multi-sig approves a mint, the action sits in a queue for hours or days. Gives the community time to spot suspicious activity and react before it executes.</p>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer-num">4</div>
+      <div class="layer-content">
+        <h4>Program-Controlled Authorities</h4>
+        <p>The mint authority is a smart contract with hard-coded rules — e.g., "only mint when a real dollar deposit is verified." Trust shifts from people to auditable code.</p>
+      </div>
+    </div>
+    <div class="layer">
+      <div class="layer-num">5</div>
+      <div class="layer-content">
+        <h4>The Security Ecosystem</h4>
+        <p>Wallets (Phantom, Backpack), explorers (Solscan), monitoring services, and security providers like Blockaid scan tokens, simulate transactions, and warn users about risky setups before they sign.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="takeaway">
+      <h3>The Bottom Line</h3>
+      <p>Solana tokens are powerful because they're flexible — but flexibility means trust assumptions. A token with a renounced mint authority is the safest from supply attacks but can never adapt. A token with an active mint authority needs strong custody (multi-sig + timelock + audits + monitoring) to be safe. Before interacting with any token, the most important question is simple: <strong>who controls the authorities, and what could they do if they wanted to — or if they got hacked?</strong></p>
+    </div>
+  </section>
+
+  <footer>
+    Built as a plain-English summary for non-technical readers · Solana Token Architecture
+  </footer>
+
+</div>
+</body>
+</html>
