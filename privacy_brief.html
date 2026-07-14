@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+@page { size: A4; margin: 20mm 18mm 18mm 18mm; }
+:root{
+  --bk-accent:#FF4500; --bk-accent-light:#FD9C78; --bk-accent-pale:#FBD6C8;
+  --bk-accent-wash:#FFF7F4; --bk-text:#232323; --bk-text-light:#4F4F4F;
+  --bk-white:#FFF; --bk-stroke:#DEDEDE;
+  --bk-font:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --bk-mono:"Fira Mono",ui-monospace,"Courier New",monospace;
+}
+*{box-sizing:border-box;}
+body{font-family:var(--bk-font);color:var(--bk-text);line-height:1.5;margin:0;font-size:10.5pt;}
+.logo{height:26px;margin-bottom:22px;}
+.eyebrow{font-family:var(--bk-mono);text-transform:uppercase;letter-spacing:.10em;font-size:8.5pt;color:var(--bk-text-light);margin:0 0 6px;}
+h1{font-size:25pt;font-weight:500;line-height:1.08;margin:0 0 8px;}
+.sub{color:var(--bk-text-light);font-size:11pt;margin:0 0 4px;}
+.lead{font-size:11pt;margin:16px 0 8px;}
+h2{font-size:13.5pt;font-weight:500;margin:22px 0 8px;padding-top:14px;border-top:1px solid var(--bk-stroke);}
+h2.nrule{border-top:none;padding-top:0;}
+p{margin:0 0 9px;}
+ul{margin:4px 0 10px;padding-left:18px;}
+li{margin:0 0 4px;}
+.hair{border:none;border-top:1px solid var(--bk-stroke);margin:16px 0;}
+.stat-strip{display:flex;gap:28px;margin:6px 0 4px;}
+.stat .n{font-size:30pt;font-weight:700;color:var(--bk-accent);line-height:1;}
+.stat .l{font-family:var(--bk-mono);font-size:8.5pt;color:var(--bk-text-light);margin-top:4px;max-width:150px;}
+table{border-collapse:collapse;width:100%;margin:8px 0 4px;font-size:9.5pt;}
+th{background:var(--bk-text);color:#fff;text-align:left;padding:7px 9px;font-weight:500;font-size:9pt;}
+td{border:1px solid var(--bk-stroke);padding:6px 9px;vertical-align:top;}
+tr:nth-child(even) td{background:var(--bk-accent-wash);}
+.tag{font-family:var(--bk-mono);font-size:8pt;padding:1px 6px;border-radius:5px;white-space:nowrap;}
+.tag-no{background:var(--bk-accent-pale);color:#8a2b00;}
+.tag-opt{background:#EDEDED;color:#4F4F4F;}
+.cards{display:flex;gap:14px;margin:6px 0;}
+.card{flex:1;border:1px solid var(--bk-stroke);border-radius:10px;padding:14px 16px;}
+.card.tint{background:var(--bk-accent-wash);border-color:var(--bk-accent-pale);}
+.card h3{margin:0 0 6px;font-size:10.5pt;font-weight:500;}
+.card p{font-size:9.5pt;color:var(--bk-text-light);margin:0;}
+.never{background:var(--bk-accent-wash);border:1px solid var(--bk-accent-pale);border-radius:10px;padding:14px 18px;}
+.never ul{columns:2;column-gap:26px;margin:6px 0 0;}
+.never li{font-size:9.5pt;}
+.flow{font-family:var(--bk-mono);font-size:9pt;background:#FAFAFA;border:1px solid var(--bk-stroke);border-radius:8px;padding:12px 14px;color:var(--bk-text);}
+.flow .arrow{color:var(--bk-accent);}
+.footer{font-family:var(--bk-mono);font-size:8pt;color:var(--bk-text-light);margin-top:18px;padding-top:10px;border-top:1px solid var(--bk-stroke);}
+.pill{font-family:var(--bk-mono);font-size:8pt;text-transform:uppercase;letter-spacing:.06em;color:var(--bk-accent);}
+</style>
+</head>
+<body>
+
+<img class="logo" src="/sessions/happy-optimistic-goldberg/mnt/.claude/skills/blockaid-brand/assets/blockaid-logo-dark.png" alt="Blockaid">
+
+<p class="eyebrow">Data privacy &amp; handling brief</p>
+<h1>Privacy by design, verifiable by default</h1>
+<p class="sub">How Blockaid handles data when securing your transactions, users, and onchain assets</p>
+
+<p class="lead">Blockaid is built to produce a security verdict from the <strong>absolute minimum</strong> data required — and, in its recommended configuration, that data is <strong>public onchain information</strong>, not your customers' personal records. This brief explains exactly what Blockaid receives, what it never receives, and the controls that keep re-identification of your users in your hands.</p>
+
+<div class="stat-strip">
+  <div class="stat"><div class="n">0</div><div class="l">Customer PII fields required to return a verdict</div></div>
+  <div class="stat"><div class="n">1</div><div class="l">Mandatory field: the public onchain address being screened</div></div>
+  <div class="stat"><div class="n">TLS</div><div class="l">All requests encrypted in transit; API-key authenticated</div></div>
+</div>
+
+<h2>What Blockaid receives</h2>
+<p>Blockaid's APIs operate on the entity being scanned (a transaction, address, token, or dApp) plus an optional <span class="pill">metadata</span> block. Every field below other than the scanned onchain entity is either a non-personal transaction attribute or optional metadata that <strong>you control and can omit or pseudonymize</strong>.</p>
+<table>
+  <tr><th>Field</th><th style="width:22%">Required for verdict</th><th style="width:22%">Personal data?</th><th>Notes</th></tr>
+  <tr><td><b>Onchain entity</b> (e.g. destination address / tx)</td><td>Yes</td><td><span class="tag tag-no">NO</span></td><td>A public, pseudonymous ledger identifier — becomes public onchain the moment the transaction is broadcast.</td></tr>
+  <tr><td>chain / asset / amount / action</td><td>Recommended</td><td><span class="tag tag-no">NO</span></td><td>Non-personal transaction attributes; public onchain once broadcast.</td></tr>
+  <tr><td>metadata.account_id</td><td>No</td><td><span class="tag tag-opt">OPTIONAL</span></td><td>Improves contextual detection. Can be omitted or supplied as a non-reversible, pseudonymous token — never a real customer identifier.</td></tr>
+  <tr><td>metadata.ip_address</td><td>No</td><td><span class="tag tag-opt">OPTIONAL</span></td><td>Aids geolocation / abuse signals. Can be omitted or sent as a placeholder.</td></tr>
+  <tr><td>metadata.user_agent / country / user_age</td><td>No</td><td><span class="tag tag-opt">OPTIONAL</span></td><td>Enrich detection only; do not affect the core verdict; fully within your control.</td></tr>
+</table>
+
+<h2>What Blockaid never receives</h2>
+<div class="never">
+<p style="margin:0;font-size:9.5pt;color:var(--bk-text-light);">In the recommended configuration, Blockaid does not receive, request, or require:</p>
+<ul>
+  <li>Names, emails, phone or postal addresses</li>
+  <li>Government ID, passport, or KYC/AML documents</li>
+  <li>Date of birth, nationality, or demographics</li>
+  <li>Account numbers, credentials, or session tokens</li>
+  <li>Balances, holdings, or portfolio history</li>
+  <li>The customer's source / sending wallet</li>
+</ul>
+</div>
+
+<h2>Why onchain data isn't customer PII</h2>
+<p>A blockchain address is a public, pseudonymous onchain identifier — not an identifier of your customer. Blockaid receives the entity being screened, never the sender's identity, and does not enrich it with any identity data. Because Blockaid never receives who your customer is, it cannot re-identify them. Querying Blockaid before broadcast exposes nothing that isn't already about to become public on the ledger.</p>
+
+<h2>How the data flows</h2>
+<div class="flow">
+your risk engine &nbsp;<span class="arrow">──( onchain entity + optional context )──▶</span>&nbsp; Blockaid API<br>
+your risk engine &nbsp;<span class="arrow">◀──────────( security verdict )──────────</span>&nbsp; Blockaid API
+</div>
+<p style="margin-top:8px;">A synchronous request / response model. Blockaid does <strong>not</strong> initiate connections back into your systems, does not require access to any of your databases, and returns only a verdict plus the matched indicators. Your own rules decide what happens next.</p>
+
+<div class="cards">
+  <div class="card tint"><h3>You stay the controller</h3><p>Any correlation token is chosen and controlled by you and can be fully pseudonymized — the means of re-identification never leaves your environment.</p></div>
+  <div class="card"><h3>Purpose limitation</h3><p>Data submitted in a scan is processed for the sole purpose of returning that security verdict.</p></div>
+  <div class="card"><h3>Secure transport</h3><p>All API traffic is over TLS (HTTPS) and authenticated with a tenant-specific API key.</p></div>
+</div>
+
+<h2>Compliance &amp; contractual assurances</h2>
+<p>Data-processing roles, retention periods, sub-processors, security controls, and breach-notification terms are formalized in a Data Processing Addendum (DPA) aligned to your standard requirements. Blockaid's security program documentation and certifications are available to prospects under NDA on request.</p>
+
+<p class="footer">Blockaid &nbsp;|&nbsp; The Onchain Security Platform &nbsp;|&nbsp; Confidential — shared under NDA &nbsp;·&nbsp; Not legal advice; final data-protection terms are those set out in the executed DPA.</p>
+
+</body>
+</html>
