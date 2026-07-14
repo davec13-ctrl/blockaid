@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blockaid Monitors — Cheatsheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fira+Mono:wght@400;500;700&display=swap');
+:root{
+  --bk-accent:#FF4500; --bk-accent-light:#FD9C78; --bk-accent-pale:#FBD6C8; --bk-accent-wash:#FFF7F4;
+  --bk-text:#232323; --bk-text-light:#4F4F4F; --bk-white:#FFFFFF; --bk-gray:#D3D3D3; --bk-stroke:#DEDEDE;
+  --bk-font:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+  --bk-mono:"Fira Mono",ui-monospace,'Courier New',monospace;
+  --bk-radius:12px; --bk-maxw:1120px;
+}
+*{box-sizing:border-box}
+body{font-family:var(--bk-font);color:var(--bk-text);background:var(--bk-white);line-height:1.55;margin:0;-webkit-font-smoothing:antialiased}
+.wrap{max-width:var(--bk-maxw);margin:0 auto;padding:0 24px}
+code{font-family:var(--bk-mono);background:var(--bk-accent-wash);border:1px solid var(--bk-accent-pale);border-radius:5px;padding:1px 6px;font-size:0.88em;color:var(--bk-text)}
+
+/* Hero */
+.hero{background:var(--bk-text);color:var(--bk-white);padding:56px 0 48px}
+.hero .wrap{}
+.brandmark{font-family:var(--bk-mono);font-weight:700;letter-spacing:.02em;font-size:18px;color:var(--bk-white);margin-bottom:28px}
+.brandmark span{color:var(--bk-accent)}
+.hero h1{font-size:clamp(30px,5vw,46px);font-weight:500;line-height:1.08;margin:0 0 14px}
+.hero p{color:var(--bk-gray);font-size:18px;max-width:720px;margin:0}
+.hero .kicker{font-family:var(--bk-mono);text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:var(--bk-accent-light);margin:0 0 10px}
+
+/* Sticky nav */
+nav.toc{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--bk-stroke)}
+nav.toc .wrap{display:flex;flex-wrap:wrap;gap:6px;padding-top:10px;padding-bottom:10px}
+nav.toc a{font-family:var(--bk-mono);font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--bk-text-light);text-decoration:none;padding:6px 10px;border-radius:6px;white-space:nowrap}
+nav.toc a:hover{background:var(--bk-accent-wash);color:var(--bk-accent)}
+
+section{padding:44px 0}
+.sec-eyebrow{font-family:var(--bk-mono);text-transform:uppercase;letter-spacing:.12em;font-size:12px;color:var(--bk-text-light);margin:0 0 6px}
+h2{font-size:clamp(24px,3.4vw,32px);font-weight:500;margin:0 0 6px}
+h2+.lede{color:var(--bk-text-light);font-size:17px;margin:0 0 24px;max-width:760px}
+h3{font-size:19px;font-weight:500;margin:28px 0 10px}
+.divider{height:1px;background:var(--bk-stroke);border:none;margin:0}
+
+/* Concept chips row */
+.concepts{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.concept{border:1px solid var(--bk-stroke);border-radius:var(--bk-radius);padding:18px 18px 16px;background:var(--bk-white)}
+.concept .n{font-family:var(--bk-mono);font-size:12px;color:var(--bk-accent);letter-spacing:.08em}
+.concept h4{margin:6px 0 6px;font-size:16px;font-weight:500}
+.concept p{margin:0;font-size:14px;color:var(--bk-text-light)}
+
+/* Rule cards (plain English) */
+.rules{display:grid;gap:20px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.rule{border:1px solid var(--bk-stroke);border-radius:var(--bk-radius);padding:22px;background:var(--bk-white);display:flex;flex-direction:column}
+.rule.flag{border-color:var(--bk-accent-pale);background:var(--bk-accent-wash)}
+.rule .top{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.rule .badge{font-family:var(--bk-mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;padding:3px 8px;border-radius:20px;border:1px solid var(--bk-accent);color:var(--bk-accent)}
+.rule h4{margin:0;font-size:18px;font-weight:500}
+.rule .analogy{font-size:14px;color:var(--bk-text-light);font-style:italic;margin:8px 0 12px;border-left:2px solid var(--bk-accent-light);padding-left:12px}
+.rule p{margin:0 0 10px;font-size:15px}
+.rule .use{margin-top:auto;font-size:13px;color:var(--bk-text-light);font-family:var(--bk-mono)}
+.rule .use b{color:var(--bk-text);font-weight:500}
+
+/* Tables */
+.tbl-scroll{overflow-x:auto;border:1px solid var(--bk-stroke);border-radius:var(--bk-radius)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--bk-stroke);vertical-align:top}
+th{font-family:var(--bk-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--bk-text-light);background:var(--bk-accent-wash);font-weight:500}
+tr:last-child td{border-bottom:none}
+tbody tr:hover{background:#fafafa}
+td b{font-weight:500}
+.sev{font-family:var(--bk-mono);font-size:11px;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.sev.crit{background:var(--bk-accent);color:#fff}
+.sev.high{background:var(--bk-accent-light);color:#3a1400}
+.sev.cfg{background:var(--bk-accent-pale);color:#5a2400}
+
+.note{background:var(--bk-accent-wash);border:1px solid var(--bk-accent-pale);border-radius:var(--bk-radius);padding:16px 18px;font-size:14px;margin:20px 0}
+.note b{color:var(--bk-accent)}
+.two{display:grid;gap:20px;grid-template-columns:1fr 1fr}
+@media(max-width:720px){.two{grid-template-columns:1fr}}
+
+footer{border-top:1px solid var(--bk-stroke);padding:22px 0 40px}
+footer .wrap{font-family:var(--bk-mono);font-size:12px;color:var(--bk-text-light);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.pill-legend{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0 0;font-size:12px;font-family:var(--bk-mono);color:var(--bk-text-light);align-items:center}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brandmark">BLOCK<span>AID</span></div>
+    <p class="kicker">Onchain Monitoring · Field Reference</p>
+    <h1>Monitors Cheatsheet</h1>
+    <p>Every monitor type explained twice — first in plain English, then as a technical lookup with parameters, operators and severities. Built from the Blockaid docs.</p>
+  </div>
+</header>
+
+<nav class="toc">
+  <div class="wrap">
+    <a href="#basics">Basics</a>
+    <a href="#plain">Plain English</a>
+    <a href="#custom-ref">Custom Monitors</a>
+    <a href="#formula-ref">Formula Rule</a>
+    <a href="#system-ref">System Monitors</a>
+    <a href="#templates">DeFi Templates</a>
+    <a href="#responses">Responses</a>
+    <a href="#testing">Testing</a>
+  </div>
+</nav>
+
+<!-- ============ PART 1: PLAIN ENGLISH ============ -->
+<section id="basics">
+  <div class="wrap">
+    <p class="sec-eyebrow">Part 1 · Plain English</p>
+    <h2>The five ideas everything is built on</h2>
+    <p class="lede">Get these and the rest of the platform reads easily. A monitor watches your stuff; when its condition is met it opens an incident; the incident's severity sets how loud it is; a response is the automatic action that follows.</p>
+    <div class="concepts">
+      <div class="concept"><div class="n">01</div><h4>Inventory</h4><p>The list of things you've asked Blockaid to watch — contracts, wallets, tokens, domains. Monitors point at these "assets."</p></div>
+      <div class="concept"><div class="n">02</div><h4>Monitor</h4><p>A rule: "watch X, and if Y happens, tell me." Two families — <b>System</b> (prebuilt, one instance each) and <b>Custom</b> (you build them).</p></div>
+      <div class="concept"><div class="n">03</div><h4>Incident</h4><p>What a monitor creates when it fires. This is the alert you triage.</p></div>
+      <div class="concept"><div class="n">04</div><h4>Severity</h4><p>How urgent: Info · Low · Medium · High · Critical. You choose it per rule.</p></div>
+      <div class="concept"><div class="n">05</div><h4>Response</h4><p>The automatic follow-up when a rule fires — Slack, email, webhook, or even an onchain transaction.</p></div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="plain">
+  <div class="wrap">
+    <p class="sec-eyebrow">Part 1 · Plain English</p>
+    <h2>The powerful rules, in everyday terms</h2>
+    <p class="lede">These are the workhorses Tommaso walks through — the building blocks you'll reach for most. Orange badge = the four most flexible / powerful ones.</p>
+
+    <div class="rules">
+
+      <div class="rule flag">
+        <div class="top"><span class="badge">Core</span><h4>Event Emitted</h4></div>
+        <p class="analogy">Like watching for a specific receipt to print.</p>
+        <p>Contracts announce what they do by firing <b>events</b>. This rule catches a named event the moment it's broadcast — the confirmation that something happened.</p>
+        <p class="use"><b>Watch for:</b> an ownership-change event · a large withdrawal · a pause. Refine by event parameters.</p>
+      </div>
+
+      <div class="rule flag">
+        <div class="top"><span class="badge">Core</span><h4>Function Call Detected</h4></div>
+        <p class="analogy">Like catching someone pressing a button — before the result shows.</p>
+        <p>Fires when a specific <b>function</b> is called on a contract. Catches the <i>request/intent</i>, where Event Emitted catches the <i>confirmation</i>.</p>
+        <p class="use"><b>Watch for:</b> <code>upgradeTo()</code> called by anyone who isn't your admin wallet. Filter by function name, params, or caller.</p>
+      </div>
+
+      <div class="rule flag">
+        <div class="top"><span class="badge">Most powerful</span><h4>Formula Rule</h4></div>
+        <p class="analogy">A smart calculator running over live data, 24/7.</p>
+        <p>You define <b>metrics</b> (a balance, a supply, a price, an API value, an event field) that get pulled continuously, then write a <b>formula</b> — a math/trend condition. When it's true, it fires. This is what does "value changed over time," which block-based tools can't.</p>
+        <p class="use"><b>Watch for:</b> reserve ratio &lt; 1.2 · TVL dropped 25% in 1h · supply up 50% in 24h.</p>
+      </div>
+
+      <div class="rule flag">
+        <div class="top"><span class="badge">Core</span><h4>Proxy Upgrade Detected</h4></div>
+        <p class="analogy">An alarm when someone swaps the engine while the car keeps the same plates.</p>
+        <p>Upgradeable contracts can point to new code behind the scenes. This fires when a contract's implementation is changed by an address that isn't on your allowlist — a classic takeover signal.</p>
+        <p class="use"><b>Watch for:</b> any proxy in inventory upgraded by a non-approved address.</p>
+      </div>
+
+      <div class="rule">
+        <div class="top"><h4>Contract Owner Change</h4></div>
+        <p class="analogy">Alert when the keys to the building change hands.</p>
+        <p>Fires when a contract's ownership changes in a way that breaks your rules (e.g. the address doing it isn't allowlisted).</p>
+        <p class="use"><b>Watch for:</b> ownership transferred by an unexpected modifier.</p>
+      </div>
+
+      <div class="rule">
+        <div class="top"><h4>Composite Monitor</h4></div>
+        <p class="analogy">"X happened but Y didn't" — a broken-invariant detector.</p>
+        <p>Combines several monitors over a time window. Great for catching things that should always move together but didn't.</p>
+        <p class="use"><b>Watch for:</b> owner changed (state) but <code>setOwnership()</code> was never called.</p>
+      </div>
+
+      <div class="rule">
+        <div class="top"><h4>Delegate Call to Non-Approved Contract</h4></div>
+        <p class="analogy">Your contract borrowing code from a stranger.</p>
+        <p>Fires on a delegatecall to any implementation not on your approved list — indirect logic changes that are easy to miss.</p>
+        <p class="use"><b>Watch for:</b> delegatecall to an address outside your approved implementations.</p>
+      </div>
+
+      <div class="rule">
+        <div class="top"><h4>EIP-7702 Set-Code Upgrade</h4></div>
+        <p class="analogy">A wallet suddenly gaining a contract's powers.</p>
+        <p>Detects EIP-7702 upgrades touching a monitored wallet or implementation — a newer account-abstraction attack surface.</p>
+        <p class="use"><b>Watch for:</b> a monitored wallet delegating to fresh code.</p>
+      </div>
+
+      <div class="rule">
+        <div class="top"><h4>Asset Has Deployed a Contract</h4></div>
+        <p class="analogy">Watching who's building new things.</p>
+        <p>Fires when a monitored address deploys a new contract — useful for tracking a suspicious actor's footprint.</p>
+        <p class="use"><b>Watch for:</b> a flagged actor deploying new tokens/contracts.</p>
+      </div>
+
+    </div>
+
+    <div class="note"><b>Rule of thumb.</b> Reach for <b>Event Emitted</b> / <b>Function Call Detected</b> for single, specific onchain actions; reach for <b>Formula Rule</b> when the trigger is about a <i>number, ratio, or trend over time</i>; reach for <b>Composite</b> when the trigger is a <i>relationship</i> between two events.</div>
+
+    <h3 style="margin-top:40px">The heavy-hitter system rules</h3>
+    <p style="color:var(--bk-text-light);font-size:16px;margin:0 0 20px;max-width:760px">You don't build these — Blockaid ships them, backed by ML and threat intel, and auto-scopes them to your inventory. One instance each; you tune, not create. These are the ones that catch an attack in progress.</p>
+
+    <div class="rules">
+
+      <div class="rule">
+        <div class="top"><span class="badge">System</span><h4>Contract Was Exploited</h4></div>
+        <p class="analogy">The smoke alarm that goes off during the fire, not after.</p>
+        <p>Detects a <b>successful exploit</b> of one of your contracts in real time — the undesired activity that causes fund loss — so you're alerted while it's happening.</p>
+        <p class="use"><b>Fires when:</b> an exploit is detected on a monitored contract.</p>
+      </div>
+
+      <div class="rule">
+        <div class="top"><span class="badge">System</span><h4>Exploit Contract Deployed</h4></div>
+        <p class="analogy">Spotting the burglar building their tools before the break-in.</p>
+        <p>Blockaid's ML flags freshly deployed contracts that look like <b>attack contracts</b> aimed at your entities — often an early warning <i>before</i> the exploit executes.</p>
+        <p class="use"><b>Fires when:</b> an exploit contract is deployed targeting your inventory.</p>
+      </div>
+
+      <div class="rule">
+        <div class="top"><span class="badge">System</span><h4>Private Key Was Compromised</h4></div>
+        <p class="analogy">Someone else is now driving your car.</p>
+        <p>Detects clear signs that a wallet's <b>private key is compromised</b> and under unauthorized control — which usually means imminent, unauthorized fund movement.</p>
+        <p class="use"><b>Fires when:</b> a monitored wallet shows key-compromise behavior.</p>
+      </div>
+
+      <div class="rule">
+        <div class="top"><span class="badge">System</span><h4>Wallet Got Drained</h4></div>
+        <p class="analogy">The account gets emptied into a stranger's hands.</p>
+        <p>Detects <b>fund loss</b> from a monitored wallet to a malicious actor — the drain itself, so you can respond and trace immediately.</p>
+        <p class="use"><b>Fires when:</b> a monitored wallet sends funds to a known malicious actor.</p>
+      </div>
+
+      <div class="rule">
+        <div class="top"><span class="badge">System</span><h4>Funds Exposed to Malicious Actors</h4></div>
+        <p class="analogy">Handing a stranger a key to your safe — before anything's taken.</p>
+        <p>Detects <b>token approvals/allowances</b> granted to malicious actors. The exposure exists the moment the approval is signed, even if funds haven't moved yet — a chance to revoke first.</p>
+        <p class="use"><b>Fires when:</b> a monitored entity approves funds to a malicious actor.</p>
+      </div>
+
+      <div class="rule">
+        <div class="top"><span class="badge">System</span><h4>SUI Object Owner Change</h4></div>
+        <p class="analogy">The master keycard changes hands on Sui.</p>
+        <p>Detects unauthorized ownership changes on Sui <b>capability objects</b> (AdminCap, UpgradeCap) — the Sui equivalent of a privileged-role or ownership hijack.</p>
+        <p class="use"><b>Fires when:</b> a monitored capability object moves to an unexpected owner.</p>
+      </div>
+
+    </div>
+
+    <div class="note"><b>System vs. custom, quickly.</b> System rules answer "is a known attack pattern happening to me?" (Blockaid's detection). Custom rules — including <b>Proxy Upgrade Detected</b> and <b>Contract Owner Change</b> — answer "did <i>this specific thing I care about</i> happen?" (your logic + allowlists). Proxy Upgrade and Owner Change are <i>custom</i>, not system, even though they feel systemic.</div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ============ PART 2: TECHNICAL REFERENCE ============ -->
+<section id="custom-ref">
+  <div class="wrap">
+    <p class="sec-eyebrow">Part 2 · Technical Reference</p>
+    <h2>Custom monitors — inputs &amp; operators</h2>
+    <p class="lede">You author these. All are multi-chain (EVM + Sui, many also Solana/Stellar/Tron/Hedera). Name-matching fields support <code>Is</code> / <code>Is not</code> (single) and <code>In</code> / <code>Not in</code> (multi). Using <code>In/Not in</code> auto-clears parameter filters.</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>Monitor</th><th>What it detects</th><th>Key inputs (req)</th><th>Default sev.</th></tr></thead>
+        <tbody>
+          <tr><td><b>Event Emitted</b></td><td>Emission of specific event(s) on a monitored contract.</td><td>Event Name <b>(yes)</b>; Event Parameter (no)</td><td><span class="sev crit">Critical</span></td></tr>
+          <tr><td><b>Function Call Detected</b></td><td>User-defined function/instruction calls on a monitored target.</td><td>Function Name <b>(yes)</b>; Function Parameter (no); Caller Address (no)</td><td><span class="sev crit">Critical</span></td></tr>
+          <tr><td><b>Formula Rule</b></td><td>Math/trend condition over one or more live metrics. See Formula section.</td><td>Metrics + Formula expression <b>(yes)</b></td><td><span class="sev cfg">Configurable</span></td></tr>
+          <tr><td><b>Composite Monitor</b></td><td>A set of monitors that happen / don't happen within a time frame (invariants).</td><td>Configured via composite interface</td><td><span class="sev cfg">Configurable</span></td></tr>
+          <tr><td><b>Contract Owner Change</b></td><td>Ownership change deviating from criteria (e.g. allowlist).</td><td>None (uses allowlist config)</td><td><span class="sev crit">Critical</span></td></tr>
+          <tr><td><b>Proxy Upgrade Detected</b></td><td>Proxy implementation change by non-allowlisted address.</td><td>None (uses allowlist config)</td><td><span class="sev crit">Critical</span></td></tr>
+          <tr><td><b>Delegate Call to Non-Approved Contract</b></td><td>Delegatecall to a contract not on approved list.</td><td>Approved Contract list <b>(yes)</b>; Function Name/Param (no)</td><td><span class="sev cfg">Configurable</span></td></tr>
+          <tr><td><b>EIP-7702 Set Code Upgrade</b></td><td>7702 set-code upgrades touching monitored wallets/implementations.</td><td>Uses inventory scope</td><td><span class="sev high">High</span></td></tr>
+          <tr><td><b>Asset Has Deployed a Contract</b></td><td>Contract deployment by a monitored entity.</td><td>Target entity</td><td><span class="sev high">High</span></td></tr>
+          <tr><td><b>Approval to Multicall Contract</b></td><td>Monitored entity approves token spend to a multicall contract.</td><td>Target entity</td><td><span class="sev cfg">Medium</span></td></tr>
+          <tr><td><b>Benign Interaction With an Asset</b></td><td>Any interaction with a monitored entity (often a composite input).</td><td>Actor address</td><td><span class="sev cfg">Info</span></td></tr>
+          <tr><td><b>Malicious Interaction With an Asset</b></td><td>Malicious actor interacts with a monitored entity (labels/props).</td><td>Actor labels</td><td><span class="sev high">High</span></td></tr>
+          <tr><td><b>Pig Butchering Interaction</b></td><td>Transfer from a monitored address to a pig-butchering address.</td><td>Target address</td><td><span class="sev high">High</span></td></tr>
+          <tr><td><b>IP Infringement</b></td><td>Token/dApp/contract deployed containing configured keywords.</td><td>Keyword(s) <b>(yes)</b></td><td><span class="sev high">High</span></td></tr>
+          <tr><td><b>Token State Changed to Malicious</b></td><td>Token flips benign → malicious; can compute user losses.</td><td>Token / holder scope</td><td><span class="sev cfg">Medium</span></td></tr>
+          <tr><td><b>Counterparty Risk Exposure</b></td><td>Counterparty has high exposure to sanctions / stolen funds / mixers.</td><td>Exposure threshold %</td><td><span class="sev high">High</span></td></tr>
+          <tr><td><b>Entity Risk Exposure (Toxicity)</b></td><td>Asset toxicity crosses configured category thresholds.</td><td>Category + threshold %</td><td><span class="sev cfg">Medium</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pill-legend"><span>Severity:</span><span class="sev crit">Critical</span><span class="sev high">High</span><span class="sev cfg">Configurable/other</span></div>
+    <div class="note"><b>Multiple configurations per monitor.</b> One monitor can hold several configs, each with its own trigger + severity, but only one incident fires per matched event (e.g. drain &gt; $30 → Low, drain &gt; $100K → Critical). Tick <b>Silent Incident</b> to suppress incident creation — handy when a rule only feeds a composite.</div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="formula-ref">
+  <div class="wrap">
+    <p class="sec-eyebrow">Part 2 · Technical Reference</p>
+    <h2>Formula Rule — the deep end</h2>
+    <p class="lede">Define metrics (data pulled continuously), optionally aggregate them, then write a formula. When the formula evaluates <code>true</code>, an incident fires. No backfill — a metric only has data from when you created it.</p>
+
+    <div class="two">
+      <div>
+        <h3>Metric types</h3>
+        <div class="tbl-scroll">
+          <table style="min-width:0">
+            <thead><tr><th>Type</th><th>Reads</th></tr></thead>
+            <tbody>
+              <tr><td><b>Contract Call</b></td><td>A numeric read-only function every block (balanceOf, totalSupply…)</td></tr>
+              <tr><td><b>Event (EVM &amp; Sui)</b></td><td>A numeric field from an event log (transfer value, swap amount…)</td></tr>
+              <tr><td><b>Transfer</b></td><td>Transfer amounts (USD) between addresses/tags</td></tr>
+              <tr><td><b>API Call</b></td><td>A numeric field from an external HTTP endpoint (prices, custom API)</td></tr>
+              <tr><td><b>Read Object (Sui)</b></td><td>A numeric field from a Sui object</td></tr>
+              <tr><td><b>Read Data Account (Solana)</b></td><td>Token-2022 account state (mint supply, amount)</td></tr>
+              <tr><td><b>Instruction (Solana)</b></td><td>Aggregated numeric param over Token-2022 instructions in a window</td></tr>
+              <tr><td><b>Computed Metric</b></td><td>A new metric built from other metrics (e.g. TVL = A*B + C*D)</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Aggregators (over a time window)</h3>
+        <p style="font-size:14px;color:var(--bk-text-light)">Sum · Count · Average · Minimum · Maximum · Standard Deviation</p>
+      </div>
+
+      <div>
+        <h3>Formula syntax</h3>
+        <div class="tbl-scroll">
+          <table style="min-width:0">
+            <thead><tr><th>Group</th><th>Operators</th></tr></thead>
+            <tbody>
+              <tr><td><b>Math</b></td><td><code>+</code> <code>-</code> <code>*</code> <code>/</code> <code>^</code></td></tr>
+              <tr><td><b>Compare</b></td><td><code>&gt;</code> <code>&lt;</code> <code>&gt;=</code> <code>&lt;=</code> <code>==</code> <code>!=</code></td></tr>
+              <tr><td><b>Logic</b></td><td><code>and</code> · <code>or</code></td></tr>
+              <tr><td><b>Range</b></td><td><code>A between 10 and 100</code></td></tr>
+              <tr><td><b>Functions</b></td><td><code>ABS(...)</code> · <code>TIMESTAMP_OF(A)</code></td></tr>
+              <tr><td><b>Trend</b> (1 metric)</td><td><code>increased_by</code> · <code>decreased_by</code> · <code>net_increased_by</code> · <code>net_decreased_by</code></td></tr>
+              <tr><td><b>Time units</b></td><td><code>30s</code> · <code>15m</code> · <code>12h</code> — values as <code>%</code>, <code>x</code>, or absolute</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h3>Worked examples</h3>
+        <div class="tbl-scroll">
+          <table style="min-width:0">
+            <thead><tr><th>Goal</th><th>Formula</th></tr></thead>
+            <tbody>
+              <tr><td>Reserve ratio floor</td><td><code>A / B &gt; 0.9</code></td></tr>
+              <tr><td>TVL crash</td><td><code>E decreased_by 25% in 1h</code></td></tr>
+              <tr><td>Balance surge</td><td><code>(A &gt; 10000) and (A increased_by 50% in 30m)</code></td></tr>
+              <tr><td>Pool imbalance</td><td><code>(A / B &gt; 1.2) or (B / A &gt; 1.2)</code></td></tr>
+              <tr><td>Stale oracle</td><td><code>TIMESTAMP_OF(A) - A &gt; 3600</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="note"><b>No backfill.</b> Metrics only carry data from the moment they're set up — you can't query history before that. If a POV needs historical data, it's a custom engineering conversation, not a self-serve feature. Trend operators act on a <i>single</i> metric (no <code>A increased_by B%</code>).</div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="system-ref">
+  <div class="wrap">
+    <p class="sec-eyebrow">Part 2 · Technical Reference</p>
+    <h2>System monitors</h2>
+    <p class="lede">Prebuilt, best-practice, ML/threat-intel-backed. Auto-scoped to your inventory. One instance per type — you can tweak config but not delete. Tagged "System" in the UI.</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>Monitor</th><th>Detects</th></tr></thead>
+        <tbody>
+          <tr><td><b>Contract Was Exploited</b></td><td>A successful exploit of a monitored contract (fund-loss activity).</td></tr>
+          <tr><td><b>Exploit Contract Deployed</b></td><td>ML-flagged exploit contracts deployed against your entities.</td></tr>
+          <tr><td><b>Private Key Was Compromised</b></td><td>Signs of a wallet's key being compromised / unauthorized control.</td></tr>
+          <tr><td><b>Wallet Got Drained</b></td><td>A monitored wallet loses funds to a malicious actor.</td></tr>
+          <tr><td><b>Funds Exposed to Malicious Actors</b></td><td>Allowance approvals to malicious actors.</td></tr>
+          <tr><td><b>Address Poisoning Campaign</b></td><td>Poisoning campaigns targeting your inventory wallets.</td></tr>
+          <tr><td><b>Malicious Airdrop Campaign</b></td><td>Malicious airdrops targeting monitored wallets.</td></tr>
+          <tr><td><b>Frontend Attack Detected</b></td><td>Compromised dApp frontend on a monitored domain.</td></tr>
+          <tr><td><b>Impersonator Token Deployed</b></td><td>New token cloning a monitored token's properties.</td></tr>
+          <tr><td><b>Impersonator dApp Deployed</b></td><td>dApp cloning a monitored dApp's brand/domain.</td></tr>
+          <tr><td><b>New Malicious dApp Targeting Your Ecosystem</b></td><td>Newly detected scam sites against your brand.</td></tr>
+          <tr><td><b>Malicious Transaction Was Blocked</b></td><td>A monitored wallet correctly blocked a malicious tx.</td></tr>
+          <tr><td><b>Malicious Transaction Detected</b></td><td>Malicious-actor interactions in chain transactions (Sui).</td></tr>
+          <tr><td><b>TOCTOU Package Deployed</b></td><td>Time-of-check/time-of-use package deployed.</td></tr>
+          <tr><td><b>SUI Object Owner Change</b></td><td>Unauthorized ownership change of Sui capability objects (AdminCap/UpgradeCap).</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="templates">
+  <div class="wrap">
+    <p class="sec-eyebrow">Part 2 · Technical Reference</p>
+    <h2>Prebuilt DeFi / protocol templates</h2>
+    <p class="lede">These ship as ready-made <b>Formula-style</b> monitors for common protocols — clone and point them at your assets rather than writing formulas from scratch.</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>Template</th><th>Fires when</th></tr></thead>
+        <tbody>
+          <tr><td>AAVE Large Liquidation</td><td>A liquidation exceeds a collateral/debt threshold.</td></tr>
+          <tr><td>AAVE Utilization Outside Zone</td><td>Asset utilization falls below / rises above your band (e.g. 20–80%).</td></tr>
+          <tr><td>AAVE V3 Governance Execution</td><td>A governance proposal is executed.</td></tr>
+          <tr><td>Chainlink Oracle Price Deviation</td><td>Aggregator answer moves &gt; X% within a window.</td></tr>
+          <tr><td>Chainlink / Pyth Stablecoin Depeg</td><td>Stablecoin deviates &gt;1% from peg.</td></tr>
+          <tr><td>Compound V3 APR Monitoring</td><td>Borrow/supply APR leaves your boundaries.</td></tr>
+          <tr><td>cbETH / rETH / stETH Peg</td><td>LST exchange rate / peg crosses a threshold.</td></tr>
+          <tr><td>Curve Virtual Price Depeg</td><td>Stableswap virtual price depegs.</td></tr>
+          <tr><td>Lido APR / Withdrawal Time</td><td>Staking APR or withdrawal time drifts.</td></tr>
+          <tr><td>Morpho Oracle / Large Supply-Borrow</td><td>Oracle drift or large positions.</td></tr>
+          <tr><td>Uniswap V2/V3 Imbalance &amp; Depeg</td><td>Pool imbalance or stablecoin pool depeg.</td></tr>
+          <tr><td>ERC-20 totalSupply Sharp Change</td><td>Supply jumps/drops sharply.</td></tr>
+          <tr><td>Unexpected Mint / Burn Detected</td><td>Mint or burn outside expected pattern.</td></tr>
+          <tr><td>ERC-4626 Large Withdrawal</td><td>Vault withdrawal above threshold.</td></tr>
+          <tr><td>Safe Multisig: Owner / Threshold / Guard / Module Change</td><td>Any change to Safe multisig config.</td></tr>
+          <tr><td>Privileged Role Changes</td><td>Role grants/revokes on access-controlled contracts.</td></tr>
+          <tr><td>Protocol Pause / Unpause Detected</td><td>Protocol is paused or resumed.</td></tr>
+          <tr><td>Oracle Price Deviation Detection</td><td>Generic oracle deviation guard.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="responses">
+  <div class="wrap">
+    <p class="sec-eyebrow">Part 2 · Technical Reference</p>
+    <h2>Responses</h2>
+    <p class="lede">Configured in Step 3 of a monitor. You can stack several — they run sequentially — and gate them to specific severities. All can fire at once when a rule triggers.</p>
+    <div class="two">
+      <div>
+        <h3>Notify</h3>
+        <div class="tbl-scroll"><table style="min-width:0"><tbody>
+          <tr><td><b>Slack</b></td><td>Post to a channel.</td></tr>
+          <tr><td><b>Email</b></td><td>Send to recipients.</td></tr>
+          <tr><td><b>Telegram</b></td><td>Message a chat.</td></tr>
+        </tbody></table></div>
+      </div>
+      <div>
+        <h3>Integrate &amp; act</h3>
+        <div class="tbl-scroll"><table style="min-width:0"><tbody>
+          <tr><td><b>Push to Webhook</b></td><td>PagerDuty, SIEM, anything.</td></tr>
+          <tr><td><b>External API Call</b></td><td>Call your own endpoint.</td></tr>
+          <tr><td><b>Label an Entity</b></td><td>Tag an address/asset internally.</td></tr>
+          <tr><td><b>Call Contract / Sui Move Call</b></td><td>Execute an onchain tx via a response wallet (e.g. pause).</td></tr>
+          <tr><td><b>Block in RPC Gateway</b></td><td>Block the interaction at the RPC layer.</td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<section id="testing">
+  <div class="wrap">
+    <p class="sec-eyebrow">Part 2 · Technical Reference</p>
+    <h2>Testing a monitor</h2>
+    <p class="lede">On the final page of the builder, <b>Test Monitor</b> replays your rule against a real or crafted transaction and tells you whether it would have fired — and it also sends test payloads to your configured responses (endpoints included).</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead><tr><th>Capability</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><b>Test Monitor available for</b></td><td>Function Call Detected (EVM, Solana, Sui, Stellar) · Event Emitted (EVM, Sui)</td></tr>
+          <tr><td><b>Not available for</b></td><td>Formula Rule — too complex to replay; use a demo/testnet setup with the team instead.</td></tr>
+          <tr><td><b>By TX hash</b></td><td>Pick chain, paste a historical tx hash/signature/digest, Test.</td></tr>
+          <tr><td><b>By parameters</b></td><td>Enter From / To / Value / Data to simulate a transaction shape.</td></tr>
+          <tr><td><b>Tests responses too</b></td><td>Yes — test examples are delivered to your endpoints.</td></tr>
+          <tr><td><b>Forking</b></td><td>Not supported (no Foundry-style fork); all testnets are supported.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note"><b>Polymarket context.</b> The "value that changes over time / historical decisioning" ask maps directly to <b>Formula Rule</b> + trend operators. Caveat to flag: <b>no backfill</b> — metrics start collecting the day they're created; pre-existing history would need a custom engineering conversation.</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>Blockaid | Internal reference</span>
+    <span>Source: docs.blockaid.io · Built Jul 2026</span>
+  </div>
+</footer>
+
+</body>
+</html>
