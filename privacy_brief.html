@@ -12,8 +12,16 @@
   --bk-mono:"Fira Mono",ui-monospace,"Courier New",monospace;
 }
 *{box-sizing:border-box;}
-body{font-family:var(--bk-font);color:var(--bk-text);line-height:1.5;margin:0;font-size:10.5pt;}
-.logo{height:26px;margin-bottom:22px;}
+html,body{background:#f6f4f0;}
+body{font-family:var(--bk-font);color:var(--bk-text);line-height:1.55;margin:0;font-size:14px;}
+.page{max-width:820px;margin:32px auto;padding:56px 60px;background:var(--bk-white);box-shadow:0 6px 30px rgba(35,35,35,.06);border-radius:8px;}
+.brandmark{font-family:var(--bk-mono);font-weight:700;letter-spacing:.02em;font-size:16px;color:var(--bk-text);margin-bottom:24px;}
+.brandmark span{color:var(--bk-accent);}
+@media (max-width:720px){.page{margin:0;padding:28px 22px;border-radius:0;box-shadow:none;}}
+@media print{
+  html,body{background:#fff;}
+  .page{max-width:none;margin:0;padding:0;box-shadow:none;border-radius:0;}
+}
 .eyebrow{font-family:var(--bk-mono);text-transform:uppercase;letter-spacing:.10em;font-size:8.5pt;color:var(--bk-text-light);margin:0 0 6px;}
 h1{font-size:25pt;font-weight:500;line-height:1.08;margin:0 0 8px;}
 .sub{color:var(--bk-text-light);font-size:11pt;margin:0 0 4px;}
@@ -49,8 +57,9 @@ tr:nth-child(even) td{background:var(--bk-accent-wash);}
 </style>
 </head>
 <body>
+<div class="page">
 
-<img class="logo" src="/sessions/happy-optimistic-goldberg/mnt/.claude/skills/blockaid-brand/assets/blockaid-logo-dark.png" alt="Blockaid">
+<div class="brandmark">BLOCK<span>AID</span></div>
 
 <p class="eyebrow">Data privacy &amp; handling brief</p>
 <h1>Privacy by design, verifiable by default</h1>
@@ -109,5 +118,6 @@ your risk engine &nbsp;<span class="arrow">◀──────────( se
 
 <p class="footer">Blockaid &nbsp;|&nbsp; The Onchain Security Platform &nbsp;|&nbsp; Confidential — shared under NDA &nbsp;·&nbsp; Not legal advice; final data-protection terms are those set out in the executed DPA.</p>
 
+</div>
 </body>
 </html>
